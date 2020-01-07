@@ -1,15 +1,18 @@
 import random
 
+WINNERS = set()
+WINNERS.add((0,1,2))
+WINNERS.add((3,4,5))
+WINNERS.add((6,7,8))
+WINNERS.add((0,3,6))
+WINNERS.add((1,4,7))
+WINNERS.add((2,5,8))
+WINNERS.add((0,4,8))
+WINNERS.add((2,4,6))
+
+GAMMA = 0.8
+
 def check_winner(state):
-    WINNERS = set()
-    WINNERS.add((0,1,2))
-    WINNERS.add((3,4,5))
-    WINNERS.add((6,7,8))
-    WINNERS.add((0,3,6))
-    WINNERS.add((1,4,7))
-    WINNERS.add((2,5,8))
-    WINNERS.add((0,4,8))
-    WINNERS.add((2,4,6))
 
     X = set()
     O = set()
@@ -36,8 +39,6 @@ def check_winner(state):
     if len(X) + len(O) == len(state):
         return -1 # tie
 
-
-
 def generate_initial_Q():
     """
         This builds the initial brain or 'Q'.
@@ -54,7 +55,7 @@ def generate_initial_Q():
     states_dictionary[(None,None,None,None,None,None,None,None,None)] = [0,0,0,
                                                                 0,0,0, 0,0,0]
     count = 0
-    # one hundred thousand is enough games to generate all states
+    # one hundred thousand is enough games to generate all states?
     while count < 100000:
 
         board = [None,None,None,None,None,None,None,None,None]
@@ -84,21 +85,55 @@ def generate_initial_Q():
     print("Done initializing Q.")
     return states_dictionary # 8953 possible states
 
-def compute_R(state):
+def compute_R(state, turn):
     """
         Returns the reward array for the current state.
         "Short term" memory.
 
     """
+    X = set()
+    O = set()
+    N = set()
+
     R = [] # possible actions given current state
-    for board_position in state:
+    for i, board_position in enumerate(state):
         if board_position == None:
             R.append(0)
+            N.add(i)
         else:
             R.append(-1)
+            if board_position == 1:
+                X.add(i)
+            else:
+                O.add(i)
 
-    # check to see if any of the current moves create a winning scenario
-        # ...
+    # print(X,O)
+    X_count = 0
+    O_count = 0
+    for winner in WINNERS:
+        for w in winner:
+            if w in X:
+                X_count += 1
+            elif w in O:
+                O_count += 1
+
+    # print(turn, X_count)
+
+    possible_winners = set()
+    if X_count >= 2 and turn == True:
+        possible_winners = X|N
+    elif O_count >= 2 and turn == False:
+        possible_winners = O|N
+
+    # print(possible_winners)
+
+    for i, score in enumerate(R):
+        if score == 0:
+            if i in possible_winners:
+                R[i] = 100
+
+    # everything becomes ___ in the end...
+    # print(R)
 
     return R
 
@@ -125,6 +160,10 @@ def play_tictactoe_turn(state, turn):
     move_here = pick_random_move(state)
     board_state = list(state)
 
+    # update appropriate Q model here
+    Q_models[turn][state][move_here] = compute_R(state, turn)[move_here] + GAMMA * max(Q_models[turn][state])
+
+    # print(Q_models[turn][state][move_here])
     if turn:
         board_state[move_here] = 1
         turn = False
@@ -133,21 +172,16 @@ def play_tictactoe_turn(state, turn):
         turn = True
 
     new_board_state = tuple(board_state)
-
-    # update appropriate Q model here
-    # Q_models[!turn][state][move_here] = 50
-    # print(state, !turn, Q_models[!turn][state],Q_models[!turn][state][move_here])
-
     return new_board_state, turn
 
-Q_0 = generate_initial_Q()
+Q_O = generate_initial_Q()
 Q_X = generate_initial_Q()
 
-Q_models = { True: Q_X, False: Q_0 }
+Q_models = { True: Q_X, False: Q_O }
 
 winner = None
 
-for _ in range(1):
+for _ in range(100000):
     board = [None,None,None,None,None,None,None,None,None]
     board_state = tuple(board)
 
@@ -156,11 +190,9 @@ for _ in range(1):
 
     while winner == None:
         board_state, turn = play_tictactoe_turn(board_state, turn)
-        # print(board_state)
         winner = check_winner(board_state)
     else:
         # print(winner)
         winner = None
 
-# Q(state, action) = R(state, action) + Gamma * Max[Q(next state, all actions)]
-# Q(1, 5) = R(1, 5) + 0.8 * Max[Q(5, 1), Q(5, 4), Q(5, 5)] = 100 + 0.8 * 0 = 100
+print(Q_models[True])
