@@ -134,14 +134,20 @@ def play_tictactoe_turn(state, turn):
 
     new_board_state = tuple(board_state)
 
+    # update appropriate Q model here
+    # Q_models[!turn][state][move_here] = 50
+    # print(state, !turn, Q_models[!turn][state],Q_models[!turn][state][move_here])
+
     return new_board_state, turn
 
 Q_0 = generate_initial_Q()
 Q_X = generate_initial_Q()
 
+Q_models = { True: Q_X, False: Q_0 }
+
 winner = None
 
-for _ in range(10):
+for _ in range(1):
     board = [None,None,None,None,None,None,None,None,None]
     board_state = tuple(board)
 
@@ -150,13 +156,11 @@ for _ in range(10):
 
     while winner == None:
         board_state, turn = play_tictactoe_turn(board_state, turn)
-        print(board_state)
+        # print(board_state)
         winner = check_winner(board_state)
     else:
-        print(winner)
+        # print(winner)
         winner = None
-        # update Q??
-
 
 # Q(state, action) = R(state, action) + Gamma * Max[Q(next state, all actions)]
 # Q(1, 5) = R(1, 5) + 0.8 * Max[Q(5, 1), Q(5, 4), Q(5, 5)] = 100 + 0.8 * 0 = 100
