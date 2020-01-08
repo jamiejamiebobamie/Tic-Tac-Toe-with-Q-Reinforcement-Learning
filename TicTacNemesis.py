@@ -1,28 +1,32 @@
 import random
 
-WINNERS = set()
-WINNERS.add((0,1,2))
-WINNERS.add((3,4,5))
-WINNERS.add((6,7,8))
-WINNERS.add((0,3,6))
-WINNERS.add((1,4,7))
-WINNERS.add((2,5,8))
-WINNERS.add((0,4,8))
-WINNERS.add((2,4,6))
-
-GAMMA = 0.8
-
 def check_winner(state):
+    """
+        Time complexity : O(33)
+        Iterates over the board spaces,
+        Recording the indices of X's (1) and O's (0) in two sets.
+
+        Iterates through the winning combinations in WINNERS
+        to see if there is a winner.
+
+        Returns 1, 0, or -1 if X wins, O wins,
+        or if there is a tie, respectively.
+
+        Returns None if there is no winner or tie.
+
+    """
 
     X = set()
     O = set()
 
+    # O(9)
     for i, board_space in enumerate(state):
         if board_space == 1:
             X.add(i)
         elif board_space == 0:
             O.add(i)
 
+    # O(8*3) = O(24)
     for winner in WINNERS:
         X_count = 0
         O_count = 0
@@ -88,7 +92,7 @@ def generate_initial_Q():
 def compute_R(state, turn):
     """
         Returns the reward array for the current state.
-        "Short term" memory.
+        "Short term" memory / immediate gratification.
 
     """
     X = set()
@@ -107,7 +111,6 @@ def compute_R(state, turn):
             else:
                 O.add(i)
 
-    # print(X,O)
     X_count = 0
     O_count = 0
     for winner in WINNERS:
@@ -117,23 +120,16 @@ def compute_R(state, turn):
             elif w in O:
                 O_count += 1
 
-    # print(turn, X_count)
-
     possible_winners = set()
     if X_count >= 2 and turn == True:
         possible_winners = X|N
     elif O_count >= 2 and turn == False:
         possible_winners = O|N
 
-    # print(possible_winners)
-
     for i, score in enumerate(R):
         if score == 0:
             if i in possible_winners:
-                R[i] = 100
-
-    # everything becomes ___ in the end...
-    # print(R)
+                R[i] = .2
 
     return R
 
@@ -157,30 +153,83 @@ def pick_random_move(state):
     return possible_moves[random_index_into_possible_moves]
 
 def play_tictactoe_turn(state, turn):
-    move_here = pick_random_move(state)
+
+    action = pick_random_move(state)
     board_state = list(state)
 
-    # update appropriate Q model here
-    Q_models[turn][state][move_here] = compute_R(state, turn)[move_here] + GAMMA * max(Q_models[turn][state])
+    """
 
-    # print(Q_models[turn][state][move_here])
+    Q(state, action) =
+
+        R(state, action) + Gamma * Max[Q(next state, all actions)]
+
+    """
+
+    R = compute_R(state,turn)
+
+    Q[state][action] = R[action] + GAMMA * max(Q[state])
+
     if turn:
-        board_state[move_here] = 1
+        board_state[action] = 1
         turn = False
     else:
-        board_state[move_here] = 0
+        board_state[action] = 0
         turn = True
 
     new_board_state = tuple(board_state)
     return new_board_state, turn
 
-Q_O = generate_initial_Q()
-Q_X = generate_initial_Q()
+def test_Q_with_state(Q, state):
+    """
+        Given a trained brain, Q and a board state:
 
-Q_models = { True: Q_X, False: Q_O }
+            (0, 1, 0, 1, None, None, None, None, 0)
+
+        recieve an index in the board state tuple for the suggested next move.
+
+    """
+
+    valid_state = Q.get(state, None)
+
+    if valid_state == None:
+        return "Not valid board state."
+
+    winner = check_winner(state)
+
+    if winner != None:
+        return "There is already a winner."
+
+    max_index = -1
+    max_choice = float("-inf")
+
+    for i, choice in enumerate(Q[state]):
+
+        temp = max_choice
+        max_choice = max(max_choice,choice)
+
+        if temp != max_choice:
+            max_index = i
+
+    return max_index
+
+WINNERS = set()
+WINNERS.add((0,1,2))
+WINNERS.add((3,4,5))
+WINNERS.add((6,7,8))
+WINNERS.add((0,3,6))
+WINNERS.add((1,4,7))
+WINNERS.add((2,5,8))
+WINNERS.add((0,4,8))
+WINNERS.add((2,4,6))
+
+GAMMA = 0.8
+
+# initializing the brain
+Q = generate_initial_Q()
 
 winner = None
 
+# training
 for _ in range(100000):
     board = [None,None,None,None,None,None,None,None,None]
     board_state = tuple(board)
@@ -192,7 +241,25 @@ for _ in range(100000):
         board_state, turn = play_tictactoe_turn(board_state, turn)
         winner = check_winner(board_state)
     else:
-        # print(winner)
         winner = None
 
-print(Q_models[True])
+rand_state = random.choice(list(Q.keys()))
+
+suggested_index_of_move = test_Q_with_state(Q, rand_state)
+
+print(rand_state[:3])
+print(rand_state[3:6])
+print(rand_state[6:9])
+
+print(suggested_index_of_move)
+
+"""
+
+(base) ➜  tic-tac-toe git:(master) ✗ python3 TicTacNemesis.py
+Done initializing Q.
+(None, None, 0)
+(1, None, 1)
+(0, 0, None)
+0
+
+"""
