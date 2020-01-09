@@ -56,39 +56,32 @@ def generate_initial_Q():
     states_dictionary = {}
 
     # log the intial empty board as a state.
-    states_dictionary[(None,None,None,None,None,None,None,None,None)] = [0,0,0,
-                                                                0,0,0, 0,0,0]
-    count = 0
-    # one hundred thousand is enough games to generate all states?
-    while count < 100000:
+    empty_board = (None,None,None,None,None,None,None,None,None)
+    states_dictionary[empty_board] = [0,0,0,0,0,0,0,0,0]
 
+    # one hundred thousand is enough games to generate all states?
+    for _ in range(100000):
         winner = None
         board = [None,None,None,None,None,None,None,None,None]
-        Xs_turn = bool(random.getrandbits(1))
+        turn = bool(random.getrandbits(1))
 
         while winner == None:
-        # while None in board:
 
             move_here = pick_random_move(board)
-
-            if Xs_turn:
+            if turn: # X's turn
                 board[move_here] = 1
-                Xs_turn = False
-            else:
+                turn = False
+            else: # O's turn
                 board[move_here] = 0
-                Xs_turn = True
+                turn = True
 
-            state = tuple(board)
-
+            board_state = tuple(board)
             # log the state and actions
-            if state not in states_dictionary:
-
+            if board_state not in states_dictionary:
                 # all states of Q should be initialized to 0
-                states_dictionary[state] = [0,0,0, 0,0,0, 0,0,0]
+                states_dictionary[board_state] = [0,0,0, 0,0,0, 0,0,0]
 
-            winner = check_winner(state)
-
-        count += 1
+            winner = check_winner(board_state)
 
     return states_dictionary # 8953 possible states
 
@@ -157,48 +150,34 @@ def play_tictactoe_turn(state, turn):
     if random.uniform(0, 1) < epsilon:
         # exploration
         action = pick_random_move(state)
-
     else:
         # exploitation
         max_action = float("-inf")
-
         store_index_of_max_equals = []
-
         for i, action in enumerate(R):
-
             temp = max_action
-
             if action == max_action:
                 store_index_of_max_equals.append(i)
             elif action > max_action:
                 store_index_of_max_equals = []
                 store_index_of_max_equals.append(i)
-
             max_action = max(max_action,action)
-
         action = random.choice(store_index_of_max_equals)
 
     board_state = list(state)
-
-    """
-    Q(state, action) =
-
-        R(state, action) + Gamma * Max[Q(next state, all actions)]
-
-    """
-
     if turn:
         board_state[action] = 1
         turn = False
     else:
         board_state[action] = 0
         turn = True
-
     new_board_state = tuple(board_state)
 
+    """
+    Q(state, action) =
+        R(state, action) + Gamma * Max[Q(next state, all actions)]
+    """
     Q[state][action] = R[action] + GAMMA * max(Q[new_board_state])
-
-    # print(Q[state], turn, board_state, action)
 
     return new_board_state, turn
 
@@ -284,8 +263,8 @@ for epoch in range(epochs):
     else:
         winner = None
         percent = epoch/epochs
-        if not percent % .1:
-            print(epoch/epochs *100, "percent done.")
+        if not percent % .01:
+            print(percent *100, "% done.")
 
 print("Done training.\n")
 
