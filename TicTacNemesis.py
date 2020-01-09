@@ -47,8 +47,6 @@ def generate_initial_Q():
     """
         This builds the initial brain or 'Q'.
         Returns a dictionary of states associated with an array of actions.
-        Like longterm memory.
-
         All actions are set to an intial value of zero.
 
     """
@@ -183,42 +181,29 @@ def play_tictactoe_turn(state, turn):
 
 def test_Q_with_state(Q, state):
     """
-        Given a trained brain, Q and a board state:
-
+        Given a trained brain, Q, and a board state:
             (0, 1, 0, 1, None, None, None, None, 0)
-
-        recieve an index in the board state tuple for the suggested next move.
-
+        recieve an index in the board state for the suggested next move.
     """
-
     valid_state = Q.get(state, None)
-
     if valid_state == None:
         return "Not valid board state."
 
     winner = check_winner(state)
-
     if winner != None:
         return "There is already a winner."
 
     max_indices = set()
     max_choice = float("inf")
-
     for i, choice in enumerate(Q[state]):
-
         temp = max_choice
-
         if choice != 0:
             max_choice = min(max_choice,choice)
-
         if temp != max_choice:
             max_indices = set()
             max_indices.add(i)
-
         if choice == max_choice:
             max_indices.add(i)
-
-    # print(max_indices)
 
     return random.choice(list(max_indices))
 
@@ -269,7 +254,7 @@ for epoch in range(epochs):
 print("Done training.\n")
 
 # testing
-for _ in range(10):
+for _ in range(30):
     rand_state = random.choice(list(Q.keys()))
     suggested_index_of_move = test_Q_with_state(Q, rand_state)
     print("\nBoard State:")
