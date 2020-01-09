@@ -95,6 +95,7 @@ def compute_R(state, turn):
         "Short term" memory / immediate gratification.
 
     """
+    # sets of indices where X has gone, O has gone, and no one has gone.
     X = set()
     O = set()
     N = set()
@@ -153,6 +154,11 @@ def pick_random_move(state):
     return possible_moves[random_index_into_possible_moves]
 
 def play_tictactoe_turn(state, turn):
+    """
+        Play a single turn of tic tac toe:
+         updates the Q model.
+         returns the new board state and the next person's turn.
+    """
 
     action = pick_random_move(state)
     board_state = list(state)
@@ -212,6 +218,8 @@ def test_Q_with_state(Q, state):
 
     return max_index
 
+
+# initializing parameters
 WINNERS = set()
 WINNERS.add((0,1,2))
 WINNERS.add((3,4,5))
@@ -222,7 +230,8 @@ WINNERS.add((2,5,8))
 WINNERS.add((0,4,8))
 WINNERS.add((2,4,6))
 
-GAMMA = 0.8
+GAMMA = 0.7
+epochs = 1000000
 
 # initializing the brain
 Q = generate_initial_Q()
@@ -230,7 +239,7 @@ Q = generate_initial_Q()
 winner = None
 
 # training
-for _ in range(100000):
+for _ in range(epochs):
     board = [None,None,None,None,None,None,None,None,None]
     board_state = tuple(board)
 
@@ -243,23 +252,28 @@ for _ in range(100000):
     else:
         winner = None
 
+print("Done training.")
+
+# testing
 rand_state = random.choice(list(Q.keys()))
-
 suggested_index_of_move = test_Q_with_state(Q, rand_state)
-
+print("\nBoard State:")
 print(rand_state[:3])
 print(rand_state[3:6])
 print(rand_state[6:9])
-
+print("\nSuggested next move (0-8):")
 print(suggested_index_of_move)
 
 """
 
-(base) ➜  tic-tac-toe git:(master) ✗ python3 TicTacNemesis.py
-Done initializing Q.
-(None, None, 0)
-(1, None, 1)
-(0, 0, None)
+WRONG:
+
+Board State:
+(None, 0, 1)
+(0, 0, 1)
+(None, None, None)
+
+Suggested next move (0-8):
 0
 
 """
