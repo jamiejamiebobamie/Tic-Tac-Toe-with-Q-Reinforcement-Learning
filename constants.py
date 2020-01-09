@@ -19,4 +19,3 @@ epsilon = 0.2
 
 # for replaying the game
 affirmative = ['y', 'yes', 'yeah', "yea", 'ye']
-play_again = 'y'

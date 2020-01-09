@@ -35,6 +35,7 @@ board = [None,None,None,None,None,None,None,None,None]
 board_state = tuple(board)
 turn = True
 
+play_again = 'y'
 while play_again in affirmative:
     while winner == None:
         suggested_move = test_Q_with_state(Q, board_state)
