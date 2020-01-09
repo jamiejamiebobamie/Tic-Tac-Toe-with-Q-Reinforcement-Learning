@@ -1,3 +1,4 @@
+from constants import *
 import random
 
 def check_winner(state):
@@ -57,7 +58,7 @@ def generate_initial_Q():
     empty_board = (None,None,None,None,None,None,None,None,None)
     states_dictionary[empty_board] = [0,0,0,0,0,0,0,0,0]
 
-    # one hundred thousand is enough games to generate all states?
+    # one hundred thousand is enough games to generate all states
     for _ in range(100000):
         winner = None
         board = [None,None,None,None,None,None,None,None,None]
@@ -125,22 +126,34 @@ def pick_random_move(state):
         Returns the index into the state array of the next move.
 
     """
+    move_array = get_available_moves(state)
+    length_of_move_array = len(move_array)
 
+    random_index_into_possible_moves = random.randint(0,
+                                                length_of_move_array-1)
+
+    return move_array[random_index_into_possible_moves]
+
+
+def get_available_moves(state):
+    """
+        Determine which indices into the board array contain None.
+        These are the possible moves.
+
+        Returns the index into the state array of the next move.
+
+    """
     possible_moves = []
     for i, moves in enumerate(state):
         if moves == None:
             possible_moves.append(i)
 
-    random_index_into_possible_moves = random.randint(0,
-                                                len(possible_moves)-1)
+    return possible_moves
 
-    return possible_moves[random_index_into_possible_moves]
-
-def play_tictactoe_turn(state, turn):
+def play_tictactoe_turn_training(Q, state, turn):
     """
-        Play a single turn of tic tac toe:
-         updates the Q model.
-         returns the new board state and the next person's turn.
+        Play a single turn of tic tac toe while training. Updates the Q model.
+        Returns the new board state and the next person's turn.
     """
 
     R = compute_R(state,turn)
@@ -179,6 +192,24 @@ def play_tictactoe_turn(state, turn):
 
     return new_board_state, turn
 
+
+def play_tictactoe_turn(action, state, turn):
+    """
+        Play a single turn of tic tac toe.
+        Returns the new board state and the next person's turn.
+    """
+
+    board_state = list(state)
+    if turn:
+        board_state[action] = 1
+        turn = False
+    else:
+        board_state[action] = 0
+        turn = True
+    new_board_state = tuple(board_state)
+
+    return new_board_state, turn
+
 def test_Q_with_state(Q, state):
     """
         Given a trained brain, Q, and a board state:
@@ -193,74 +224,35 @@ def test_Q_with_state(Q, state):
     if winner != None:
         return "There is already a winner."
 
-    max_indices = set()
-    max_choice = float("inf")
+    min_indices = set()
+    min_choice = float("inf")
     for i, choice in enumerate(Q[state]):
-        temp = max_choice
+        temp = min_choice
         if choice != 0:
-            max_choice = min(max_choice,choice)
-        if temp != max_choice:
-            max_indices = set()
-            max_indices.add(i)
-        if choice == max_choice:
-            max_indices.add(i)
+            min_choice = min(min_choice,choice)
+        if temp != min_choice:
+            min_indices = set()
+            min_indices.add(i)
+        if choice == min_choice:
+            min_indices.add(i)
 
-    return random.choice(list(max_indices))
+    return random.choice(list(min_indices))
 
-# initializing parameters
-WINNERS = set()
-WINNERS.add((0,1,2))
-WINNERS.add((3,4,5))
-WINNERS.add((6,7,8))
-WINNERS.add((0,3,6))
-WINNERS.add((1,4,7))
-WINNERS.add((2,5,8))
-WINNERS.add((0,4,8))
-WINNERS.add((2,4,6))
-
-GAMMA = 0.8
-epochs = 1000000
-
-# Set the percent you want to explore
-epsilon = 0.2
-
-# initializing the brain
-print("Initializing Q.")
-
-Q = generate_initial_Q()
-print("Done initializing Q.\n")
-
-
-winner = None
-
-# training
-print("Begin training.")
-for epoch in range(epochs):
-    board = [None,None,None,None,None,None,None,None,None]
-    board_state = tuple(board)
-
-    # X's turn equals True, O's turn equals False
-    turn = bool(random.getrandbits(1))
-
-    while winner == None:
-        board_state, turn = play_tictactoe_turn(board_state, turn)
-        winner = check_winner(board_state)
+def print_board_state(board_state, player_symbol):
+    if player_symbol == "X":
+        computer_symbol = "O"
     else:
-        winner = None
-        percent = epoch/epochs
-        if not percent % .01:
-            print(percent *100, "% done.")
+        computer_symbol = "X"
 
-print("Done training.\n")
+    board = []
+    for i, position in enumerate(board_state):
+        if position == 1:
+            board.append(player_symbol)
+        elif position == 0:
+            board.append(computer_symbol)
+        else:
+            board.append(i)
 
-# testing
-for _ in range(30):
-    rand_state = random.choice(list(Q.keys()))
-    suggested_index_of_move = test_Q_with_state(Q, rand_state)
-    print("\nBoard State:")
-    print(rand_state[:3])
-    print(rand_state[3:6])
-    print(rand_state[6:9])
-    print("\nSuggested next move (0-8):")
-    print(suggested_index_of_move)
-    print(Q[rand_state])
+    print(board[:3])
+    print(board[3:6])
+    print(board[6:9])
