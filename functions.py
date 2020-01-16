@@ -238,6 +238,22 @@ def play_tictactoe_turn(action, board_state, turn):
 
     return new_board_state, turn
 
+def play_tictactoe_turn_test(action, board_state, turn):
+    """
+        Play a single turn of tic tac toe.
+        Returns the new board state and the next person's turn.
+    """
+    board = list(board_state)
+    if turn:
+        board[action] = 1
+        turn = False
+    else:
+        board[action] = 0
+        turn = True
+    new_board_state = tuple(board)
+
+    return new_board_state, turn
+
 def test_Q_with_state(Q, state):
     """
         Given a trained brain, Q, and a board state:
@@ -358,7 +374,7 @@ def test_accuracy(number_of_games, Q):
                     action = suggested_move
                 else:
                     action = pick_random_move(board_state)
-                board_state, turn = play_tictactoe_turn(action, board_state, turn)
+                board_state, turn = play_tictactoe_turn_test(action, board_state, turn)
                 winner = check_winner(board_state)
             else:
                 # record outcome and show progress.
