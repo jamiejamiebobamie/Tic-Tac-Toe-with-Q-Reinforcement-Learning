@@ -301,7 +301,7 @@ def test_single_moves(num_moves):
         print(Q[rand_state])
 
 def test_accuracy(number_of_games, Q):
-    def unit_test(first, AI, starting_percent):
+    def unit_test(first=bool(random.getrandbits(1)), AI, starting_percent=0):
         """
         INPUT: 1/0, 1/0/-1, 0 through 100.
 
@@ -322,14 +322,13 @@ def test_accuracy(number_of_games, Q):
 
             while winner == None:
                 # play match.
-
                 suggested_move = test_Q_with_state_max(Q, board_state)
-
-                if AI == turn or AI == -1:
+                # if the player who is using AI's turn is up,
+                # play the suggested move.
+                if AI == turn or AI == both:
                     action = suggested_move
                 else:
                     action = pick_random_move(board_state)
-
                 board_state, turn = play_tictactoe_turn(action, board_state, turn)
                 winner = check_winner(board_state)
             else:
@@ -383,115 +382,5 @@ def test_accuracy(number_of_games, Q):
     AI = neither
     starting_percent = 0
     unit_test(first, AI, starting_percent)
-
-
-    # print("Testing when X goes first and is using the AI.")
-    # winner = None
-    # for game in range(number_of_games):
-    #     board = [None,None,None,None,None,None,None,None,None]
-    #     board_state = tuple(board)
-    #
-    #     while winner == None:
-    #         # play match.
-    #
-    #         suggested_move = test_Q_with_state_max(Q, board_state)
-    #
-    #         if turn:
-    #             action = suggested_move
-    #         else:
-    #             action = pick_random_move(board_state)
-    #
-    #         board_state, turn = play_tictactoe_turn(action, board_state, turn)
-    #         winner = check_winner(board_state)
-    #     else:
-    #         # record outcome, reset game, and show progress.
-    #         record[turn][winner] += 1
-    #         winner = None
-    #         turn = X_first
-    #         percent_one = game/number_of_games
-    #         if not percent_one % .01:
-    #             print(percent_one * 50, "% done.")
-    #
-    # turn = O_first
-    # print("Testing when O goes first and is using the AI.")
-    # winner = None
-    # for game in range(number_of_games):
-    #     board = [None,None,None,None,None,None,None,None,None]
-    #     board_state = tuple(board)
-    #
-    #     while winner == None:
-    #         # play match.
-    #
-    #         suggested_move = test_Q_with_state_max(Q, board_state)
-    #
-    #         if turn:
-    #             action = suggested_move
-    #         else:
-    #             action = pick_random_move(board_state)
-    #
-    #         board_state, turn = play_tictactoe_turn(action, board_state, turn)
-    #         winner = check_winner(board_state)
-    #     else:
-    #         # record outcome, reset game, and show progress
-    #         record[turn][winner] += 1
-    #         winner = None
-    #         turn = O_first
-    #         percent_two = game/number_of_games
-    #         if not percent_two % .01:
-    #             print(percent_one + percent_two * 50, "% done.")
-    #
-    # # Testing when both are using the AI.
-    # X_first_both = "X_first_both"
-    # O_first_both = "O_first_both"
-    # record[X_first_both] = { 1:0, 0:0, -1:0 }
-    # record[O_first_both] = { 1:0, 0:0, -1:0 }
-    #
-    # turn = X_first
-    # print("Testing when X goes first and both are using the AI.")
-    # winner = None
-    # for game in range(number_of_games):
-    #     board = [None,None,None,None,None,None,None,None,None]
-    #     board_state = tuple(board)
-    #
-    #     while winner == None:
-    #         # play match.
-    #
-    #         suggested_move = test_Q_with_state_max(Q, board_state)
-    #         action = suggested_move
-    #
-    #         board_state, turn = play_tictactoe_turn(action, board_state, turn)
-    #         winner = check_winner(board_state)
-    #     else:
-    #         # record outcome, reset game, and show progress
-    #         record[X_first_both][winner] += 1
-    #         winner = None
-    #         turn = X_first
-    #         percent_two = game/number_of_games
-    #         if not percent_two % .01:
-    #             print(percent_one + percent_two * 50, "% done.")
-    #
-    # turn = O_first
-    # print("Testing when O goes first and both are using the AI.")
-    # winner = None
-    # for game in range(number_of_games):
-    #     board = [None,None,None,None,None,None,None,None,None]
-    #     board_state = tuple(board)
-    #
-    #     while winner == None:
-    #         # play match.
-    #
-    #         suggested_move = test_Q_with_state_max(Q, board_state)
-    #         action = suggested_move
-    #
-    #         board_state, turn = play_tictactoe_turn(action, board_state, turn)
-    #         winner = check_winner(board_state)
-    #     else:
-    #         # record outcome, reset game, and show progress
-    #         record[O_first_both][winner] += 1
-    #         winner = None
-    #         turn = O_first
-    #         percent_two = game/number_of_games
-    #         if not percent_two % .01:
-    #             print(percent_one + percent_two * 50, "% done.")
 
     print(record)
