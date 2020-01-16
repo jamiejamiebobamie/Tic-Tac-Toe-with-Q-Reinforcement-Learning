@@ -118,37 +118,67 @@ def compute_R(state, turn):
 
     return R
 
-def pick_random_move(state):
+def pick_random_move(board_state):
     """
-        Determine which indices into the board array contain None.
-        These are the possible moves.
-
-        Returns the index into the state array of the next move.
-
+        Returns a random move from the possibilities.
     """
-    move_array = get_available_moves(state)
-    length_of_move_array = len(move_array)
+    possible_moves = get_available_moves(board_state)
+    number_of_possible_moves = len(possible_moves)
 
     random_index_into_possible_moves = random.randint(0,
-                                                length_of_move_array-1)
+                                                number_of_possible_moves-1)
 
-    return move_array[random_index_into_possible_moves]
+    return possible_moves[random_index_into_possible_moves]
 
 
-def get_available_moves(state):
+def get_available_moves(board_state):
     """
         Determine which indices into the board array contain None.
         These are the possible moves.
 
-        Returns the index into the state array of the next move.
+        Returns an array of board positions of possible moves.
 
     """
     possible_moves = []
-    for i, moves in enumerate(state):
+    for i, moves in enumerate(board_state):
         if moves == None:
             possible_moves.append(i)
 
     return possible_moves
+
+# def play_tictactoe_turn_training(Q, board_state, turn):
+#     """
+#         Play a single turn of tic tac toe while training. Updates the Q model.
+#         Returns the new board state and the next person's turn.
+#     """
+#
+#     R = compute_R(board_state,turn)
+#     suggested_move = test_Q_with_state_max(Q, board_state)
+#
+#     if suggested_move == "Not valid board state.":
+#         Q.update({board_state: [None,None,None,None,None,None,None,None,None] })
+#
+#     if random.uniform(0, 1) < epsilon:
+#         # exploration
+#         action = pick_random_move(board_state)
+#     else:
+#         # exploitation
+#         action = suggested_move
+#
+#     new_board_state, turn = play_tictactoe_turn(action, board_state, turn)
+#
+#     next_state_valid = test_Q_with_state_max(Q, new_board_state)
+#
+#     if next_state_valid == "Not valid board state.":
+#         Q.update({board_state: [None,None,None,None,None,None,None,None,None] })
+#
+#     """
+#     Q(state, action) =
+#         R(state, action) + Gamma * Max[Q(next state, all actions)]
+#     """
+#     Q[board_state][action] = R[action] + GAMMA * max(Q[new_board_state])
+#
+#     return new_board_state, turn
 
 def play_tictactoe_turn_training(Q, state, turn):
     """
@@ -192,21 +222,19 @@ def play_tictactoe_turn_training(Q, state, turn):
 
     return new_board_state, turn
 
-
-def play_tictactoe_turn(action, state, turn):
+def play_tictactoe_turn(action, board_state, turn):
     """
         Play a single turn of tic tac toe.
         Returns the new board state and the next person's turn.
     """
-
-    board_state = list(state)
+    board = list(board_state)
     if turn:
-        board_state[action] = 1
+        board[action] = 1
         turn = False
     else:
-        board_state[action] = 0
+        board[action] = 0
         turn = True
-    new_board_state = tuple(board_state)
+    new_board_state = tuple(board)
 
     return new_board_state, turn
 
@@ -238,6 +266,7 @@ def test_Q_with_state(Q, state):
 
     return random.choice(list(min_indices))
 
+#  seems to yield good results for the player who goes second
 def test_Q_with_state_max(Q, state):
     """
         Given a trained brain, Q, and a board state:
@@ -301,7 +330,7 @@ def test_single_moves(num_moves):
         print(Q[rand_state])
 
 def test_accuracy(number_of_games, Q):
-    def unit_test(first=bool(random.getrandbits(1)), AI, starting_percent=0):
+    def unit_test(first, AI, starting_percent=0):
         """
         INPUT: 1/0, 1/0/-1, 0 through 100.
 
@@ -322,7 +351,7 @@ def test_accuracy(number_of_games, Q):
 
             while winner == None:
                 # play match.
-                suggested_move = test_Q_with_state_max(Q, board_state)
+                suggested_move = test_Q_with_state(Q, board_state)
                 # if the player who is using AI's turn is up,
                 # play the suggested move.
                 if AI == turn or AI == both:
@@ -343,15 +372,24 @@ def test_accuracy(number_of_games, Q):
 
     # who won and how many times.
     X, O, tie = True, False, -1
-    win_count = { X: 0, O: 0, tie: 0 }
+    win_count1 = { X: 0, O: 0, tie: 0 }
+    win_count2 = { X: 0, O: 0, tie: 0 }
+    win_count3 = { X: 0, O: 0, tie: 0 }
+    win_count4 = { X: 0, O: 0, tie: 0 }
+
+    win_count5 = { X: 0, O: 0, tie: 0 }
+    win_count6 = { X: 0, O: 0, tie: 0 }
+    win_count7 = { X: 0, O: 0, tie: 0 }
+    win_count8 = { X: 0, O: 0, tie: 0 }
 
     # who was using ai
     both, neither = -1, 2
-    ai = { X: win_count, O: win_count, both: win_count, neither: win_count}
+    ai1 = { X: win_count1, O: win_count2, both: win_count3, neither: win_count4}
+    ai2 = { X: win_count5, O: win_count6, both: win_count7, neither: win_count8}
 
     # who went first
-    record[X] = ai
-    record[O] = ai
+    record[X] = ai1
+    record[O] = ai2
 
     print("Testing when X goes first and X is using the AI.")
     first = X
@@ -381,6 +419,24 @@ def test_accuracy(number_of_games, Q):
     first = X
     AI = neither
     starting_percent = 0
+    unit_test(first, AI, starting_percent)
+
+    print("Testing when O goes first and neither is using AI.")
+    first = O
+    AI = neither
+    starting_percent = 50
+    unit_test(first, AI, starting_percent)
+
+    print("Testing when X goes first and O is using AI.")
+    first = X
+    AI = O
+    starting_percent = 0
+    unit_test(first, AI, starting_percent)
+
+    print("Testing when O goes first and X is using AI.")
+    first = O
+    AI = X
+    starting_percent = 50
     unit_test(first, AI, starting_percent)
 
     print(record)
