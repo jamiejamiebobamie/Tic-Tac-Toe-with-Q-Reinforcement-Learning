@@ -39,6 +39,7 @@ play_again = 'y'
 while play_again in affirmative:
     while winner == None:
         suggested_move = test_Q_with_state(Q, board_state)
+        # best_move_for_opponent = test_Q_with_state_max(Q, board_state)
         action = -1
         if turn:
             possible_moves = get_available_moves(board_state)
@@ -53,6 +54,7 @@ while play_again in affirmative:
                 action = int(action)
         else:
             action = suggested_move
+            # action = best_move_for_opponent
 
         board_state, turn = play_tictactoe_turn(action, board_state, turn)
 

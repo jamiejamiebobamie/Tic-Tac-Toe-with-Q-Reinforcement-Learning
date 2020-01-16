@@ -254,6 +254,7 @@ def play_tictactoe_turn_test(action, board_state, turn):
 
     return new_board_state, turn
 
+#  seems to yield good results for the player who goes first
 def test_Q_with_state(Q, state):
     """
         Given a trained brain, Q, and a board state:
