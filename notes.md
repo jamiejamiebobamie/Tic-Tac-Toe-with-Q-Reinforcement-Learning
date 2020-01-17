@@ -14,10 +14,10 @@
 	 }
 }
 ## every time the trained ai was playing an ai that was picking at random and won.
-# (80,384 + 52,727 + 53,031 + 79,741) = 265, 883
+### (80,384 + 52,727 + 53,031 + 79,741) = 265, 883
 ## every time the trained ai was playing an ai that was picking at random and lost.
-# (8723 + 39732 + 39481 + 8441) = 96,377
+### (8723 + 39732 + 39481 + 8441) = 96,377
 ## every time the trained ai was playing an ai that was picking at random and tied.
-# (10893 + 11818 + 7488 + 7541) = 37,740
+### (10893 + 11818 + 7488 + 7541) = 37,740
 # 66% accuracy
 ## the AI wins 2/3rds of the games it plays, regardless of who goes first.
