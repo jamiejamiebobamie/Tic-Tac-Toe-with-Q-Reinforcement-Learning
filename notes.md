@@ -13,12 +13,12 @@
 		2: {True: 29024, False: 58184, -1: 12792}		// neither has the AI - > O won 58.184%
 	 }
 }
-## Out of a 400,000 games:
-## Every time the trained ai was playing an ai that was picking at random and won.
+# Out of a 400,000 games:
+## Every time the trained ai was playing an ai that was picking at random and won:
 ### (80,384 + 52,727 + 53,031 + 79,741) = 265, 883
-## Every time the trained ai was playing an ai that was picking at random and lost.
+## Every time the trained ai was playing an ai that was picking at random and lost:
 ### (8723 + 39732 + 39481 + 8441) = 96,377
-## Every time the trained ai was playing an ai that was picking at random and tied.
+## Every time the trained ai was playing an ai that was picking at random and tied:
 ### (10893 + 11818 + 7488 + 7541) = 37,740
-## 66% accuracy
-## The AI wins 2/3rds of the games it plays, regardless of who goes first.
+## 66% accuracy:
+### The AI wins 2/3rds of the games it plays, regardless of who goes first.
