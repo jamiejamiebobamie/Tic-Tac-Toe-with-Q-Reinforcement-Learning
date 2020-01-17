@@ -13,6 +13,7 @@
 		2: {True: 29024, False: 58184, -1: 12792}		// neither has the AI - > O won 58.184%
 	 }
 }
+## Out of a 400,000 games:
 ## Every time the trained ai was playing an ai that was picking at random and won.
 ### (80,384 + 52,727 + 53,031 + 79,741) = 265, 883
 ## Every time the trained ai was playing an ai that was picking at random and lost.
