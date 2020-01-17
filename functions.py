@@ -130,7 +130,6 @@ def pick_random_move(board_state):
 
     return possible_moves[random_index_into_possible_moves]
 
-
 def get_available_moves(board_state):
     """
         Determine which indices into the board array contain None.
@@ -145,40 +144,6 @@ def get_available_moves(board_state):
             possible_moves.append(i)
 
     return possible_moves
-
-# def play_tictactoe_turn_training(Q, board_state, turn):
-#     """
-#         Play a single turn of tic tac toe while training. Updates the Q model.
-#         Returns the new board state and the next person's turn.
-#     """
-#
-#     R = compute_R(board_state,turn)
-#     suggested_move = test_Q_with_state_max(Q, board_state)
-#
-#     if suggested_move == "Not valid board state.":
-#         Q.update({board_state: [None,None,None,None,None,None,None,None,None] })
-#
-#     if random.uniform(0, 1) < epsilon:
-#         # exploration
-#         action = pick_random_move(board_state)
-#     else:
-#         # exploitation
-#         action = suggested_move
-#
-#     new_board_state, turn = play_tictactoe_turn(action, board_state, turn)
-#
-#     next_state_valid = test_Q_with_state_max(Q, new_board_state)
-#
-#     if next_state_valid == "Not valid board state.":
-#         Q.update({board_state: [None,None,None,None,None,None,None,None,None] })
-#
-#     """
-#     Q(state, action) =
-#         R(state, action) + Gamma * Max[Q(next state, all actions)]
-#     """
-#     Q[board_state][action] = R[action] + GAMMA * max(Q[new_board_state])
-#
-#     return new_board_state, turn
 
 def play_tictactoe_turn_training(Q, state, turn):
     """
@@ -254,7 +219,6 @@ def play_tictactoe_turn_test(action, board_state, turn):
 
     return new_board_state, turn
 
-#  seems to yield good results for the player who goes first
 def test_Q_with_state(Q, state):
     """
         Given a trained brain, Q, and a board state:
@@ -283,7 +247,7 @@ def test_Q_with_state(Q, state):
 
     return random.choice(list(min_indices))
 
-#  seems to yield good results for the player who goes second
+#  good for choosing the wrong position.
 def test_Q_with_state_max(Q, state):
     """
         Given a trained brain, Q, and a board state:
@@ -349,16 +313,15 @@ def test_single_moves(num_moves):
 def test_accuracy(number_of_games, Q):
     def unit_test(first, AI, starting_percent=0):
         """
-        INPUT: 1/0, 1/0/-1, 0 through 100.
+        Tests the Q model with the given parameters for the number_of_games
+        Record it in the record dictionary.
+
+        INPUT: 1/0, 1/0/-1, 0-100
 
         1/0 : who goes first x or o.
-
         1/0/-1/2 : who has ai, 1 for x, 0 for o, -1 for both, 2 for neither.
-
         starting_percent: increment the progress percent on the output display.
-
         """
-
         for game in range(number_of_games):
             board = [None,None,None,None,None,None,None,None,None]
             board_state = tuple(board)
@@ -375,7 +338,8 @@ def test_accuracy(number_of_games, Q):
                     action = suggested_move
                 else:
                     action = pick_random_move(board_state)
-                board_state, turn = play_tictactoe_turn_test(action, board_state, turn)
+                board_state, turn = play_tictactoe_turn_test(action,
+                                                            board_state, turn)
                 winner = check_winner(board_state)
             else:
                 # record outcome and show progress.
@@ -409,51 +373,27 @@ def test_accuracy(number_of_games, Q):
     record[O] = ai2
 
     print("Testing when X goes first and X is using the AI.")
-    first = X
-    AI = X
-    starting_percent = 0
-    unit_test(first, AI, starting_percent)
+    unit_test(first=X, AI=X, starting_percent=0)
 
     print("Testing when O goes first and O is using the AI.")
-    first = O
-    AI = O
-    starting_percent = 50
-    unit_test(first, AI, starting_percent)
+    unit_test(first=O, AI=O, starting_percent=50)
 
     print("Testing when X goes first and both players have AI.")
-    first = X
-    AI = both
-    starting_percent = 0
-    unit_test(first, AI, starting_percent)
+    unit_test(first=X, AI=both, starting_percent=0)
 
     print("Testing when O goes first and both players have AI.")
-    first = O
-    AI = both
-    starting_percent = 50
-    unit_test(first, AI, starting_percent)
+    unit_test(first=O, AI=both, starting_percent=50)
 
     print("Testing when X goes first and neither is using AI.")
-    first = X
-    AI = neither
-    starting_percent = 0
-    unit_test(first, AI, starting_percent)
+    unit_test(first=X, AI=neither, starting_percent=0)
 
     print("Testing when O goes first and neither is using AI.")
-    first = O
-    AI = neither
-    starting_percent = 50
-    unit_test(first, AI, starting_percent)
+    unit_test(first=O, AI=neither, starting_percent=50)
 
     print("Testing when X goes first and O is using AI.")
-    first = X
-    AI = O
-    starting_percent = 0
-    unit_test(first, AI, starting_percent)
+    unit_test(first=X, AI=O, starting_percent=0)
 
     print("Testing when O goes first and X is using AI.")
-    first = O
-    AI = X
-    starting_percent = 50
-    unit_test(first, AI, starting_percent)
+    unit_test(first=O, AI=X, starting_percent=50)
 
     print(record)

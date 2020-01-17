@@ -9,13 +9,13 @@ WINNERS.add((0,4,8))
 WINNERS.add((2,4,6))
 
 # "a discount factor... used to balance immediate and future reward."
-GAMMA = 0.8
+GAMMA = 0.9
 
 # number of training epochs
 epochs = 100000
 
 # the percent you want to explore while training
-epsilon = 0.2
+epsilon = 0.3
 
 # for replaying the game
 affirmative = ['y', 'yes', 'yeah', "yea", 'ye']
