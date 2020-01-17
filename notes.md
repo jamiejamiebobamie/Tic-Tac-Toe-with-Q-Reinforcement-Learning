@@ -1,4 +1,4 @@
-# using test_Q_with_state (_min) in the unit test < — works! (at least better than picking randomly)
+# Results from training_and_validation.py
 ## {
  ## True: 														// X went first.
 	 {	True: {True: 80384, False: 8723, -1: 10893}, 		// X has the AI - > X won 80.384%
