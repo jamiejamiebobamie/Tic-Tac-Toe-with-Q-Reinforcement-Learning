@@ -22,5 +22,5 @@
 ## every time the trained ai was playing an ai that was picking at random and tied.
 ## (10893 + 11818 + 7488 + 7541) = 37,740
 ##
-## 66% accuracy
-## the AI wins 2/3rds of the games it plays, regardless of who goes first.
+# 66% accuracy
+# the AI wins 2/3rds of the games it plays, regardless of who goes first.
