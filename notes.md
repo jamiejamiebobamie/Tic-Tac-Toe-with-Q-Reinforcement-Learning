@@ -20,9 +20,9 @@
 ### (8723 + 39732 + 39481 + 8441) = 96,377
 ## Every time the trained AI was playing an AI that was picking at random and tied:
 ### (10893 + 11818 + 7488 + 7541) = 37,740
-## 66% accuracy:
-### The AI wins 2/3rds of the games it plays, regardless of who goes first.
-### Going first and picking at random seems to yield a 58% chance of winning.
-### Using the AI seems to yield a 9-30% increase in wins (?),
-### looking at the win rate of when both are using the AI and when neither
+## 66% accuracy
+The AI wins 2/3rds of the games it plays, regardless of who goes first.
+Going first and picking at random seems to yield a 58% chance of winning.
+Using the AI seems to yield a 9-30% increase in wins (?),
+looking at the win rate of when both are using the AI and when neither
 are using it compared to this 66% accuracy.
