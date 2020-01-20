@@ -5,6 +5,7 @@ from functions import *
 print("Initializing Q.")
 Q = generate_initial_Q()
 print("Done initializing Q.\n")
+# print(len(Q.keys()))
 
 winner = None
 
@@ -28,4 +29,6 @@ for epoch in range(epochs):
 
 print("Done training.\n")
 number_of_games = epochs
+print(Q)
 test_accuracy(number_of_games, Q)
+# test_single_moves(5, Q)

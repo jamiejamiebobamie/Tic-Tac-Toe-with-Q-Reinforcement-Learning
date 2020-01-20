@@ -14,7 +14,6 @@ def check_winner(state):
         or if there is a tie, respectively.
 
         Returns None if there is no winner or tie.
-
     """
 
     X = set()
@@ -84,39 +83,102 @@ def generate_initial_Q():
 
     return states_dictionary # 8953 possible states
 
-def compute_R(state, turn):
+# def compute_R(state, turn):
+#     """
+#         Returns the reward array for the current state.
+#         "Short term" memory / immediate gratification.
+#
+#     """
+#     # sets of indices where X has gone, O has gone, and no one has gone.
+#     X = set()
+#     O = set()
+#     N = set()
+#     R = [] # possible actions given current state
+#     for i, board_position in enumerate(state):
+#         if board_position == None:
+#             R.append(0)
+#             N.add(i)
+#         else:
+#             R.append(-1)
+#             if board_position == 1:
+#                 X.add(i)
+#             else:
+#                 O.add(i)
+#
+#     possible_winners_X = X|N
+#     possible_winners_O = N|O
+#
+#     for i, score in enumerate(R):
+#         if score != -1:
+#             if i in possible_winners_X:
+#                 R[i] += 1
+#             if i in possible_winners_O:
+#                 R[i] += 1
+#
+#     return R
+
+def compute_R(board_state, turn):
     """
+    Input:
+         board_state is a tuple of the board's positions.
+         turn is 1/0 indicating if
+            it's the first-person's turn (1) or the second's (0)
+            (whoever originally went first)
+
+    Output:
         Returns the reward array for the current state.
         "Short term" memory / immediate gratification.
-
     """
+
     # sets of indices where X has gone, O has gone, and no one has gone.
-    X = set()
-    O = set()
-    N = set()
-    R = [] # possible actions given current state
-    for i, board_position in enumerate(state):
+    X_position = set()
+    O_position = set()
+    None_position = set()
+    Reward_Array = [] # possible actions given current state
+    for i, board_position in enumerate(board_state):
         if board_position == None:
-            R.append(0)
-            N.add(i)
+            Reward_Array.append(0)
+            None_position.add(i)
         else:
-            R.append(-1)
+            Reward_Array.append(-1)
             if board_position == 1:
-                X.add(i)
+                X_position.add(i)
             else:
-                O.add(i)
+                O_position.add(i)
 
-    possible_winners_X = X|N
-    possible_winners_O = N|O
+    # +100 to the position in R if that position is a winning move
+    # +50 if that position is a winning move for the other player
+    #     (block others from winning)
 
-    for i, score in enumerate(R):
+    for i, score in enumerate(Reward_Array):
         if score != -1:
-            if i in possible_winners_X:
-                R[i] += 1
-            if i in possible_winners_O:
-                R[i] += 1
+            # if turn == 1:
+            test_board_state = []
+            # deep copy needed.
+            for j, move in enumerate(Reward_Array):
+                if j != i:
+                    test_board_state.append(move)
+                else:
+                    test_board_state.append(turn)
 
-    return R
+            possible_winner = check_winner(test_board_state)
+
+            # if the winner is X
+            if possible_winner == 1:
+                # if it's the first-person's turn
+                if turn == 1:
+                    Reward_Array[i] += 100 # LOG WINNING MOVE.
+                else:
+                    Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
+
+            # if the winner is O
+            elif possible_winner == 0:
+                if turn == 0:
+                    Reward_Array[i] += 100 # BLOCK THE OTHER PLAYER.
+                else:
+                    Reward_Array[i] += 50 # LOG WINNING MOVE.
+
+    return Reward_Array
 
 def pick_random_move(board_state):
     """
@@ -256,7 +318,7 @@ def test_Q_with_state_max(Q, state):
     """
     valid_state = Q.get(state, None)
     if valid_state == None:
-        return "Not valid board state."
+        Q.update({state : [0,0,0, 0,0,0, 0,0,0]})
 
     winner = check_winner(state)
     if winner != None:
@@ -298,7 +360,7 @@ def print_board_state(board_state, player_symbol):
 
 # testing / validation
 
-def test_single_moves(num_moves):
+def test_single_moves(num_moves, Q):
     for _ in range(num_moves):
         rand_state = random.choice(list(Q.keys()))
         suggested_index_of_move = test_Q_with_state(Q, rand_state)
@@ -331,14 +393,16 @@ def test_accuracy(number_of_games, Q):
 
             while winner == None:
                 # play match.
-                suggested_move = test_Q_with_state(Q, board_state)
+                # suggested_move = test_Q_with_state(Q, board_state)
+                suggested_move = test_Q_with_state_max(Q, board_state)
                 # if the player who is using AI's turn is up,
                 # play the suggested move.
                 if AI == turn or AI == both:
                     action = suggested_move
                 else:
                     action = pick_random_move(board_state)
-                board_state, turn = play_tictactoe_turn_test(action,
+                # print(action, board_state, turn)
+                board_state, turn = play_tictactoe_turn_test(int(action),
                                                             board_state, turn)
                 winner = check_winner(board_state)
             else:
