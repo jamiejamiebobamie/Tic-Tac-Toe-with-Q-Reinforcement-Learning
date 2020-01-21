@@ -19,3 +19,14 @@
 The player who goes first has a 58% chance of winning.
 The accuracy of the built model is 96% when the player goes first and a 77-79%
 when going second.
+
+# ways to improve the model:
+
+## Include who's turn it is in the Q model.
+x x _
+o _ o
+_ _ _
+^ ambiguous (who's turn is it?)
+
+## maybe create two Q models / brains.
+## one for the first person and one for the second.
