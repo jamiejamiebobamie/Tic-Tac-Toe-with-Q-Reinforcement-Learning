@@ -14,5 +14,6 @@ print("Done training.\n")
 # test
 print("Begin testing.")
 test_accuracy(EPOCHS, Q)
-# test_single_moves(5, Q)
+# test_single_moves(20, Q)
+# print(Q)
 print("Done testing.\n")

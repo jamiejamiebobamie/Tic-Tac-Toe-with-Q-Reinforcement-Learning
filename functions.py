@@ -119,31 +119,26 @@ def compute_R(board_state, turn):
 
     for i, score in enumerate(Reward_Array):
         if score != -1:
-            # if turn == 1:
-            test_board_state = []
+
+            test_board_state = list()
+
             # deep copy needed.
-            for j, move in enumerate(Reward_Array):
+            for j, move in enumerate(board_state):
                 if j != i:
                     test_board_state.append(move)
                 else:
-                    test_board_state.append(turn)
+                    test_board_state.append(int(turn))
 
             possible_winner = check_winner(test_board_state)
 
-            # if the winner is X
-            if possible_winner == 1:
-                # if it's the first-person's turn
-                if turn == 1:
-                    Reward_Array[i] += 100 # LOG WINNING MOVE.
-                else:
-                    Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
+            # if the possible winner equals the person's who turn it is.
+            if possible_winner == turn:
+                Reward_Array[i] += 100 # LOG WINNING MOVE.
+            elif possible_winner != -1 and possible_winner != None:
+                Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
 
-            # if the winner is O
-            elif possible_winner == 0:
-                if turn == 0:
-                    Reward_Array[i] += 100 # BLOCK THE OTHER PLAYER.
-                else:
-                    Reward_Array[i] += 50 # LOG WINNING MOVE.
+            # print(board_state, turn,
+            #             possible_winner, test_board_state, Reward_Array)
 
     return Reward_Array
 
@@ -231,6 +226,7 @@ def test_single_moves(num_moves, Q):
         print("\nSuggested next move (0-8):")
         print(suggested_index_of_move)
         print(Q[rand_state])
+        print(compute_R(rand_state, 1))
 
 def test_accuracy(number_of_games, Q):
     def unit_test(first, AI, starting_percent=0):
@@ -263,7 +259,7 @@ def test_accuracy(number_of_games, Q):
                 else:
                     action = pick_random_move(board_state)
 
-                board_state, turn = play_tictactoe_turn(int(action),
+                board_state, turn = play_tictactoe_turn(action,
                                                             board_state, turn)
                 winner = check_winner(board_state)
             else:
@@ -380,7 +376,13 @@ def play_tictactoe_turn_training(Q, state, turn):
     Q(state, action) =
         R(state, action) + Gamma * Max[Q(next state, all actions)]
     """
-    Q[state][action] = R[action] + GAMMA * max(Q[new_board_state])
+    # Q[state][action] = R[action] + GAMMA * max(Q[new_board_state])
+
+    # Q[state, action] = Q[state, action] + lr * (reward + gamma * np.max(Q[new_state, :]) — Q[state, action])
+
+    Q[state][action] = ( 1 - LEARNING_RATE ) * Q[state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(Q[new_board_state]) )
+
+    # print(Q[state], state, R, action)
 
     return new_board_state, turn
 
