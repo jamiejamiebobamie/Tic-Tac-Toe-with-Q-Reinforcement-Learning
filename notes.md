@@ -23,9 +23,9 @@ when going second.
 # ways to improve the model:
 
 ## Include who's turn it is in the Q model.
-x x _
+{x x _
 o _ o
-_ _ _
+_ _ _}
 ^ ambiguous (who's turn is it?)
 
 ## maybe create two Q models / brains.
