@@ -1,7 +1,8 @@
 from constants import *
 import random
 
-def check_winner(state):
+# -- - general_purpose methods - - --- - -
+def check_winner(board_state):
     """
         Time complexity : O(33)
         Iterates over the board spaces,
@@ -20,7 +21,7 @@ def check_winner(state):
     O = set()
 
     # O(9)
-    for i, board_space in enumerate(state):
+    for i, board_space in enumerate(board_state):
         if board_space == 1:
             X.add(i)
         elif board_space == 0:
@@ -40,7 +41,7 @@ def check_winner(state):
         elif O_count == 3:
             return 0 # O wins
 
-    if len(X) + len(O) == len(state):
+    if len(X) + len(O) == len(board_state):
         return -1 # tie
 
 def generate_initial_Q():
@@ -82,40 +83,6 @@ def generate_initial_Q():
             winner = check_winner(board_state)
 
     return states_dictionary # 8953 possible states
-
-# def compute_R(state, turn):
-#     """
-#         Returns the reward array for the current state.
-#         "Short term" memory / immediate gratification.
-#
-#     """
-#     # sets of indices where X has gone, O has gone, and no one has gone.
-#     X = set()
-#     O = set()
-#     N = set()
-#     R = [] # possible actions given current state
-#     for i, board_position in enumerate(state):
-#         if board_position == None:
-#             R.append(0)
-#             N.add(i)
-#         else:
-#             R.append(-1)
-#             if board_position == 1:
-#                 X.add(i)
-#             else:
-#                 O.add(i)
-#
-#     possible_winners_X = X|N
-#     possible_winners_O = N|O
-#
-#     for i, score in enumerate(R):
-#         if score != -1:
-#             if i in possible_winners_X:
-#                 R[i] += 1
-#             if i in possible_winners_O:
-#                 R[i] += 1
-#
-#     return R
 
 def compute_R(board_state, turn):
     """
@@ -207,48 +174,6 @@ def get_available_moves(board_state):
 
     return possible_moves
 
-def play_tictactoe_turn_training(Q, state, turn):
-    """
-        Play a single turn of tic tac toe while training. Updates the Q model.
-        Returns the new board state and the next person's turn.
-    """
-
-    R = compute_R(state,turn)
-
-    if random.uniform(0, 1) < epsilon:
-        # exploration
-        action = pick_random_move(state)
-    else:
-        # exploitation
-        max_action = float("-inf")
-        store_index_of_max_equals = []
-        for i, action in enumerate(R):
-            temp = max_action
-            if action == max_action:
-                store_index_of_max_equals.append(i)
-            elif action > max_action:
-                store_index_of_max_equals = []
-                store_index_of_max_equals.append(i)
-            max_action = max(max_action,action)
-        action = random.choice(store_index_of_max_equals)
-
-    board_state = list(state)
-    if turn:
-        board_state[action] = 1
-        turn = False
-    else:
-        board_state[action] = 0
-        turn = True
-    new_board_state = tuple(board_state)
-
-    """
-    Q(state, action) =
-        R(state, action) + Gamma * Max[Q(next state, all actions)]
-    """
-    Q[state][action] = R[action] + GAMMA * max(Q[new_board_state])
-
-    return new_board_state, turn
-
 def play_tictactoe_turn(action, board_state, turn):
     """
         Play a single turn of tic tac toe.
@@ -265,51 +190,6 @@ def play_tictactoe_turn(action, board_state, turn):
 
     return new_board_state, turn
 
-def play_tictactoe_turn_test(action, board_state, turn):
-    """
-        Play a single turn of tic tac toe.
-        Returns the new board state and the next person's turn.
-    """
-    board = list(board_state)
-    if turn:
-        board[action] = 1
-        turn = False
-    else:
-        board[action] = 0
-        turn = True
-    new_board_state = tuple(board)
-
-    return new_board_state, turn
-
-def test_Q_with_state(Q, state):
-    """
-        Given a trained brain, Q, and a board state:
-            (0, 1, 0, 1, None, None, None, None, 0)
-        recieve an index in the board state for the suggested next move.
-    """
-    valid_state = Q.get(state, None)
-    if valid_state == None:
-        return "Not valid board state."
-
-    winner = check_winner(state)
-    if winner != None:
-        return "There is already a winner."
-
-    min_indices = set()
-    min_choice = float("inf")
-    for i, choice in enumerate(Q[state]):
-        temp = min_choice
-        if choice != 0:
-            min_choice = min(min_choice,choice)
-        if temp != min_choice:
-            min_indices = set()
-            min_indices.add(i)
-        if choice == min_choice:
-            min_indices.add(i)
-
-    return random.choice(list(min_indices))
-
-#  good for choosing the wrong position.
 def test_Q_with_state_max(Q, state):
     """
         Given a trained brain, Q, and a board state:
@@ -336,34 +216,14 @@ def test_Q_with_state_max(Q, state):
             max_indices.add(i)
 
     return random.choice(list(max_indices))
-
-
-def print_board_state(board_state, player_symbol):
-    if player_symbol == "X":
-        computer_symbol = "O"
-    else:
-        computer_symbol = "X"
-
-    board = []
-    for i, position in enumerate(board_state):
-        if position == 1:
-            board.append(player_symbol)
-        elif position == 0:
-            board.append(computer_symbol)
-        else:
-            board.append(i)
-
-    print(board[:3])
-    print(board[3:6])
-    print(board[6:9])
+# -- - end general_purpose methods - - --- - -
 
 
 # testing / validation
-
 def test_single_moves(num_moves, Q):
     for _ in range(num_moves):
         rand_state = random.choice(list(Q.keys()))
-        suggested_index_of_move = test_Q_with_state(Q, rand_state)
+        suggested_index_of_move = test_Q_with_state_max(Q, rand_state)
         print("\nBoard State:")
         print(rand_state[:3])
         print(rand_state[3:6])
@@ -393,16 +253,17 @@ def test_accuracy(number_of_games, Q):
 
             while winner == None:
                 # play match.
-                # suggested_move = test_Q_with_state(Q, board_state)
+
                 suggested_move = test_Q_with_state_max(Q, board_state)
+
                 # if the player who is using AI's turn is up,
-                # play the suggested move.
+                    # play the suggested move.
                 if AI == turn or AI == both:
                     action = suggested_move
                 else:
                     action = pick_random_move(board_state)
-                # print(action, board_state, turn)
-                board_state, turn = play_tictactoe_turn_test(int(action),
+
+                board_state, turn = play_tictactoe_turn(int(action),
                                                             board_state, turn)
                 winner = check_winner(board_state)
             else:
@@ -461,3 +322,224 @@ def test_accuracy(number_of_games, Q):
     unit_test(first=O, AI=X, starting_percent=50)
 
     print(record)
+
+# training
+def train(EPOCHS, Q):
+    for epoch in range(EPOCHS):
+        winner = None
+        board = [None,None,None,None,None,None,None,None,None]
+        board_state = tuple(board)
+
+        # X's turn equals True, O's turn equals False
+        turn = bool(random.getrandbits(1))
+
+        while winner == None:
+            board_state, turn = play_tictactoe_turn_training(Q, board_state, turn)
+            winner = check_winner(board_state)
+        else:
+            winner = None
+            percent = epoch/EPOCHS
+            if not percent % .01:
+                print(percent *100, "% done.")
+
+def play_tictactoe_turn_training(Q, state, turn):
+    """
+        Play a single turn of tic tac toe while training. Updates the Q model.
+        Returns the new board state and the next person's turn.
+    """
+
+    R = compute_R(state,turn)
+
+    if random.uniform(0, 1) < EPSILON:
+        # exploration
+        action = pick_random_move(state)
+    else:
+        # exploitation
+        max_action = float("-inf")
+        store_index_of_max_equals = []
+        for i, action in enumerate(R):
+            temp = max_action
+            if action == max_action:
+                store_index_of_max_equals.append(i)
+            elif action > max_action:
+                store_index_of_max_equals = []
+                store_index_of_max_equals.append(i)
+            max_action = max(max_action,action)
+        action = random.choice(store_index_of_max_equals)
+
+    board_state = list(state)
+    if turn:
+        board_state[action] = 1
+        turn = False
+    else:
+        board_state[action] = 0
+        turn = True
+    new_board_state = tuple(board_state)
+
+    """
+    Q(state, action) =
+        R(state, action) + Gamma * Max[Q(next state, all actions)]
+    """
+    Q[state][action] = R[action] + GAMMA * max(Q[new_board_state])
+
+    return new_board_state, turn
+
+# playing
+def play_game(Q):
+    def pick_symbol():
+        player_symbol = None
+        while player_symbol != "X" and player_symbol != "O":
+            print("Do you want to be X's or O's?")
+            player_symbol = input()
+            if player_symbol.isalpha():
+                player_symbol = player_symbol.upper()
+
+        return player_symbol
+
+    def reset_game():
+        """
+        'zero's' everything out.
+        """
+        board = [None,None,None,None,None,None,None,None,None]
+        board_state = tuple(board)
+        turn = True
+        winner = None
+        player_symbol = None
+        return board, board_state, turn, winner, player_symbol
+
+    board = [None,None,None,None,None,None,None,None,None]
+    board_state = tuple(board)
+    turn = True
+    play_again = 'y'
+    winner = None
+
+    while play_again in AFFIRMATIVE:
+        player_symbol  = pick_symbol()
+        while winner == None:
+            suggested_move = test_Q_with_state_max(Q, board_state)
+            action = -1
+            if turn:
+                possible_moves = get_available_moves(board_state)
+                print("\nBoard State:")
+                print_board_state(board_state, player_symbol)
+                print("The possible moves (0-8) are:", possible_moves)
+                print("From the available positions where would you like to go?")
+                print("The algorithm thinks you should go here:", suggested_move)
+                print()
+                while action not in possible_moves:
+                    action = input()
+                    action = int(action)
+            else:
+                action = suggested_move
+
+            board_state, turn = play_tictactoe_turn(action, board_state, turn)
+
+            winner = check_winner(board_state)
+
+        if winner == 1:
+            print("You won!")
+        elif winner == 0:
+            print("You lost :(.")
+        else:
+            print("Tie!")
+
+        print_board_state(board_state, player_symbol)
+
+        print("Would you like to play again?\n y / n ?\n")
+        play_again = input()
+        play_again = play_again.lower()
+
+        # reset game
+        board, board_state, turn, winner, player_symbol = reset_game()
+
+def print_board_state(board_state, player_symbol):
+    if player_symbol == "X":
+        computer_symbol = "O"
+    else:
+        computer_symbol = "X"
+
+    board = []
+    for i, position in enumerate(board_state):
+        if position == 1:
+            board.append(player_symbol)
+        elif position == 0:
+            board.append(computer_symbol)
+        else:
+            board.append(i)
+
+    print(board[:3])
+    print(board[3:6])
+    print(board[6:9])
+
+# def permute(options_array, array_length):
+#     """
+#     Takes in an array of choices and finds all permutations for
+#         the given array length.
+#
+#     Example Input:
+#         options_array: [1,2,None], array_length: 2
+#     Exmaple Output:
+#         [
+#             [2,1],
+#             [1,2],
+#             [2,2],
+#             [1,1],
+#             [None, 1],
+#             [1, None],
+#             [2, None],
+#             [None, 2],
+#             [None, None]
+#         ]
+#     """
+#
+#     """
+#         # want to fix one item of a permutation at a time,
+#         # starting at the beginning,
+#         # and have all other items change as that one item stays constant.
+#         # [1,2],3
+#         # * = fixed item
+#         # [1*,1,1]
+#         # [1*,2,1]
+#         # [1*,1,2]
+#         # [1*,2,2]
+#         # [2*,1,1]
+#         # [2*,2,1]
+#         # [2*,2,2]
+#
+#         # [1,1*,1] <-- already present
+#         # [1,1*,2] <-- already present
+#         # [2,1*,2] <-- already present
+#         # [2,2*,1] <-- already present
+#         # [1,2*,1] <-- already present
+#         ... stack overflow ...
+#         https://www.geeksforgeeks.org/print-all-possible-combinations-of-r-elements-in-a-given-array-of-size-n/
+#     """
+
+def print_combination(arr, n, r):
+    permutations = set()
+    def combination_util(arr, n, r, index, data, i):
+        # Current combination is ready, print it
+        if (index == r):
+            for j in range(r):
+                permutations.add(data[j])
+                # print(data[j], end = " ")
+            return
+        # When no more elements are there to put in data[]
+        if (i >= n):
+            i = 0
+            return
+        # Current is included, put next at next location
+        data[index] = arr[i]
+        combination_util(arr, n, r, index + 1,
+                        data, i + 1)
+        # current is excluded, replace it with next
+        # (Note that i+1 is passed, but index is not changed)
+        combination_util(arr, n, r, index, data, i + 1)
+    # Print all combination using temprary array 'data[]'
+    data = [0] * r
+    combination_util(arr, n, r, 0, data, 0)
+    return permutations
+#
+# arr = [1,0,None]
+# r = 9
+# print(print_combination(arr, len(arr), r))

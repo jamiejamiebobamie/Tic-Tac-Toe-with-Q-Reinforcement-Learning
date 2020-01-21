@@ -1,3 +1,4 @@
+# the indices of the winning positions.
 WINNERS = set()
 WINNERS.add((0,1,2))
 WINNERS.add((3,4,5))
@@ -12,10 +13,10 @@ WINNERS.add((2,4,6))
 GAMMA = 0.9
 
 # number of training epochs
-epochs = 100000
+EPOCHS = 100000
 
 # the percent you want to explore while training
-epsilon = 0.3
+EPSILON = 0.3
 
 # for replaying the game
-affirmative = ['y', 'yes', 'yeah', "yea", 'ye']
+AFFIRMATIVE = ['y', 'yes', 'yeah', "yea", 'ye']

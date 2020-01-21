@@ -1,34 +1,18 @@
-from constants import *
-from functions import *
+from constants import EPOCHS
+from functions import generate_initial_Q, train, test_accuracy, test_single_moves
 
-# initializing the brain
+# initialize
 print("Initializing Q.")
 Q = generate_initial_Q()
 print("Done initializing Q.\n")
-# print(len(Q.keys()))
 
-winner = None
-
-# training
+# train
 print("Begin training.")
-for epoch in range(epochs):
-    board = [None,None,None,None,None,None,None,None,None]
-    board_state = tuple(board)
-
-    # X's turn equals True, O's turn equals False
-    turn = bool(random.getrandbits(1))
-
-    while winner == None:
-        board_state, turn = play_tictactoe_turn_training(Q, board_state, turn)
-        winner = check_winner(board_state)
-    else:
-        winner = None
-        percent = epoch/epochs
-        if not percent % .01:
-            print(percent *100, "% done.")
-
+train(EPOCHS, Q)
 print("Done training.\n")
-number_of_games = epochs
-print(Q)
-test_accuracy(number_of_games, Q)
+
+# test
+print("Begin testing.")
+test_accuracy(EPOCHS, Q)
 # test_single_moves(5, Q)
+print("Done testing.\n")
