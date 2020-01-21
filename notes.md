@@ -17,5 +17,5 @@
 }
 ### Out of a 400,000 games:
 The player who goes first has a 58% chance of winning.
-the accuracy of the built model is 96% when the player goes first and a 77-79%
+The accuracy of the built model is 96% when the player goes first and a 77-79%
 when going second.
