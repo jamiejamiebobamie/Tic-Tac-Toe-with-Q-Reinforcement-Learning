@@ -137,9 +137,6 @@ def compute_R(board_state, turn):
             elif possible_winner != -1 and possible_winner != None:
                 Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
 
-            # print(board_state, turn,
-            #             possible_winner, test_board_state, Reward_Array)
-
     return Reward_Array
 
 def pick_random_move(board_state):
@@ -228,7 +225,7 @@ def test_single_moves(num_moves, Q):
         print(Q[rand_state])
         print(compute_R(rand_state, 1))
 
-def test_accuracy(number_of_games, Q):
+def test_accuracy(number_of_games, Q1, Q2):
     def unit_test(first, AI, starting_percent=0):
         """
         Tests the Q model with the given parameters for the number_of_games
@@ -250,14 +247,22 @@ def test_accuracy(number_of_games, Q):
             while winner == None:
                 # play match.
 
-                suggested_move = test_Q_with_state_max(Q, board_state)
+                # ---- -- - - - - - - -
+                # I believe the below code is wrong... based on the output.
 
-                # if the player who is using AI's turn is up,
-                    # play the suggested move.
+                # if using AI
                 if AI == turn or AI == both:
+                    # if it's the first person who went
+                    if turn == first:
+                        suggested_move = test_Q_with_state_max(Q1, board_state)
+                    else:
+                        suggested_move = test_Q_with_state_max(Q2, board_state)
+
                     action = suggested_move
+
                 else:
                     action = pick_random_move(board_state)
+                # ---- -- - - - - - - -
 
                 board_state, turn = play_tictactoe_turn(action,
                                                             board_state, turn)
@@ -320,7 +325,7 @@ def test_accuracy(number_of_games, Q):
     print(record)
 
 # training
-def train(EPOCHS, Q):
+def train(EPOCHS, Q1, Q2):
     for epoch in range(EPOCHS):
         winner = None
         board = [None,None,None,None,None,None,None,None,None]
@@ -330,7 +335,7 @@ def train(EPOCHS, Q):
         turn = bool(random.getrandbits(1))
 
         while winner == None:
-            board_state, turn = play_tictactoe_turn_training(Q, board_state, turn)
+            board_state, turn = play_tictactoe_turn_training(Q1, Q2, board_state, turn)
             winner = check_winner(board_state)
         else:
             winner = None
@@ -338,7 +343,7 @@ def train(EPOCHS, Q):
             if not percent % .01:
                 print(percent *100, "% done.")
 
-def play_tictactoe_turn_training(Q, state, turn):
+def play_tictactoe_turn_training(Q1, Q2, state, turn):
     """
         Play a single turn of tic tac toe while training. Updates the Q model.
         Returns the new board state and the next person's turn.
@@ -372,22 +377,16 @@ def play_tictactoe_turn_training(Q, state, turn):
         turn = True
     new_board_state = tuple(board_state)
 
-    """
-    Q(state, action) =
-        R(state, action) + Gamma * Max[Q(next state, all actions)]
-    """
-    # Q[state][action] = R[action] + GAMMA * max(Q[new_board_state])
-
-    # Q[state, action] = Q[state, action] + lr * (reward + gamma * np.max(Q[new_state, :]) — Q[state, action])
-
-    Q[state][action] = ( 1 - LEARNING_RATE ) * Q[state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(Q[new_board_state]) )
-
-    # print(Q[state], state, R, action)
+    # it was just the first peron's turn. update Q1 brain.
+    if not turn:
+        Q1[state][action] = ( 1 - LEARNING_RATE ) * Q1[state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(Q1[new_board_state]) )
+    else:
+        Q2[state][action] = ( 1 - LEARNING_RATE ) * Q2[state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(Q2[new_board_state]) )
 
     return new_board_state, turn
 
 # playing
-def play_game(Q):
+def play_game(Q1,Q2):
     def pick_symbol():
         player_symbol = None
         while player_symbol != "X" and player_symbol != "O":
@@ -404,37 +403,54 @@ def play_game(Q):
         """
         board = [None,None,None,None,None,None,None,None,None]
         board_state = tuple(board)
-        turn = True
+        turn = bool(random.getrandbits(1))
+        # the value of 'turn' changes every turn.
+        # need to record its initial value in first to know which brain to use.
+        first = turn
         winner = None
         player_symbol = None
-        return board, board_state, turn, winner, player_symbol
+        return board, board_state, turn, winner, player_symbol, first
 
-    board = [None,None,None,None,None,None,None,None,None]
-    board_state = tuple(board)
-    turn = True
+    board, board_state, turn, winner, player_symbol, first = reset_game()
+
     play_again = 'y'
-    winner = None
-
     while play_again in AFFIRMATIVE:
         player_symbol  = pick_symbol()
+
+        if first:
+            playerAI, enemyAI = Q1, Q2
+        else:
+            playerAI, enemyAI = Q2, Q1
+
         while winner == None:
-            suggested_move = test_Q_with_state_max(Q, board_state)
             action = -1
+
+            suggested_move = test_Q_with_state_max(playerAI, board_state)
+
             if turn:
                 possible_moves = get_available_moves(board_state)
+
+                # show the player where he could go.
                 print("\nBoard State:")
                 print_board_state(board_state, player_symbol)
                 print("The possible moves (0-8) are:", possible_moves)
                 print("From the available positions where would you like to go?")
                 print("The algorithm thinks you should go here:", suggested_move)
                 print()
+
                 while action not in possible_moves:
                     action = input()
                     action = int(action)
+
             else:
-                action = suggested_move
+                action = test_Q_with_state_max(enemyAI, board_state)
 
             board_state, turn = play_tictactoe_turn(action, board_state, turn)
+
+            # show the player where the other guy went.
+            # if turn:
+            #     print("\nBoard State:")
+            #     print_board_state(board_state, player_symbol)
 
             winner = check_winner(board_state)
 
@@ -445,6 +461,8 @@ def play_game(Q):
         else:
             print("Tie!")
 
+        # show the player his winning game.
+        # if not turn:
         print_board_state(board_state, player_symbol)
 
         print("Would you like to play again?\n y / n ?\n")
@@ -452,7 +470,7 @@ def play_game(Q):
         play_again = play_again.lower()
 
         # reset game
-        board, board_state, turn, winner, player_symbol = reset_game()
+        board, board_state, turn, winner, player_symbol, first = reset_game()
 
 def print_board_state(board_state, player_symbol):
     if player_symbol == "X":
@@ -472,76 +490,3 @@ def print_board_state(board_state, player_symbol):
     print(board[:3])
     print(board[3:6])
     print(board[6:9])
-
-# def permute(options_array, array_length):
-#     """
-#     Takes in an array of choices and finds all permutations for
-#         the given array length.
-#
-#     Example Input:
-#         options_array: [1,2,None], array_length: 2
-#     Exmaple Output:
-#         [
-#             [2,1],
-#             [1,2],
-#             [2,2],
-#             [1,1],
-#             [None, 1],
-#             [1, None],
-#             [2, None],
-#             [None, 2],
-#             [None, None]
-#         ]
-#     """
-#
-#     """
-#         # want to fix one item of a permutation at a time,
-#         # starting at the beginning,
-#         # and have all other items change as that one item stays constant.
-#         # [1,2],3
-#         # * = fixed item
-#         # [1*,1,1]
-#         # [1*,2,1]
-#         # [1*,1,2]
-#         # [1*,2,2]
-#         # [2*,1,1]
-#         # [2*,2,1]
-#         # [2*,2,2]
-#
-#         # [1,1*,1] <-- already present
-#         # [1,1*,2] <-- already present
-#         # [2,1*,2] <-- already present
-#         # [2,2*,1] <-- already present
-#         # [1,2*,1] <-- already present
-#         ... stack overflow ...
-#         https://www.geeksforgeeks.org/print-all-possible-combinations-of-r-elements-in-a-given-array-of-size-n/
-#     """
-
-def print_combination(arr, n, r):
-    permutations = set()
-    def combination_util(arr, n, r, index, data, i):
-        # Current combination is ready, print it
-        if (index == r):
-            for j in range(r):
-                permutations.add(data[j])
-                # print(data[j], end = " ")
-            return
-        # When no more elements are there to put in data[]
-        if (i >= n):
-            i = 0
-            return
-        # Current is included, put next at next location
-        data[index] = arr[i]
-        combination_util(arr, n, r, index + 1,
-                        data, i + 1)
-        # current is excluded, replace it with next
-        # (Note that i+1 is passed, but index is not changed)
-        combination_util(arr, n, r, index, data, i + 1)
-    # Print all combination using temprary array 'data[]'
-    data = [0] * r
-    combination_util(arr, n, r, 0, data, 0)
-    return permutations
-#
-# arr = [1,0,None]
-# r = 9
-# print(print_combination(arr, len(arr), r))
