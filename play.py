@@ -16,5 +16,5 @@ print("Done training.\n")
 
 # play
 print("Let's play!\n")
-play_game(Q1,Q2)
+play_game(Q1, Q2)
 print("\nThanks for playing!")

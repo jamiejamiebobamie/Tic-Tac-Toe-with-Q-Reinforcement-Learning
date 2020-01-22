@@ -156,8 +156,7 @@ def get_available_moves(board_state):
         Determine which indices into the board array contain None.
         These are the possible moves.
 
-        Returns an array of board positions of possible moves.
-
+        Returns an array of board positions/indices of possible moves.
     """
     possible_moves = []
     for i, moves in enumerate(board_state):
@@ -182,30 +181,29 @@ def play_tictactoe_turn(action, board_state, turn):
 
     return new_board_state, turn
 
-def test_Q_with_state_max(Q, state):
+def test_Q_with_state_max(Q, board_state):
     """
         Given a trained brain, Q, and a board state:
             (0, 1, 0, 1, None, None, None, None, 0)
-        recieve an index in the board state for the suggested next move.
+        recieve an index into the board state for the suggested next move.
     """
-    valid_state = Q.get(state, None)
-    if valid_state == None:
-        Q.update({state : [0,0,0, 0,0,0, 0,0,0]})
-
-    winner = check_winner(state)
+    winner = check_winner(board_state)
     if winner != None:
         return "There is already a winner."
 
     max_indices = set()
     max_choice = float("-inf")
-    for i, choice in enumerate(Q[state]):
-        temp = max_choice
-        max_choice = max(max_choice,choice)
-        if temp != max_choice:
-            max_indices = set()
-            max_indices.add(i)
-        if choice == max_choice:
-            max_indices.add(i)
+    for i, choice in enumerate(Q[board_state]):
+        if board_state[i] == None:
+            temp = max_choice
+            max_choice = max(max_choice,choice)
+            if temp != max_choice:
+                max_indices = set()
+                max_indices.add(i)
+            if choice == max_choice:
+                max_indices.add(i)
+
+    print(Q[board_state], max_indices)
 
     return random.choice(list(max_indices))
 # -- - end general_purpose methods - - --- - -
@@ -247,10 +245,6 @@ def test_accuracy(number_of_games, Q1, Q2):
             while winner == None:
                 # play match.
 
-                # ---- -- - - - - - - -
-                # I believe the below code is wrong... based on the output.
-
-                # if using AI
                 if AI == turn or AI == both:
                     # if it's the first person who went
                     if turn == first:
@@ -262,14 +256,25 @@ def test_accuracy(number_of_games, Q1, Q2):
 
                 else:
                     action = pick_random_move(board_state)
-                # ---- -- - - - - - - -
 
                 board_state, turn = play_tictactoe_turn(action,
                                                             board_state, turn)
                 winner = check_winner(board_state)
             else:
-                # record outcome and show progress.
-                record[first][AI][winner] += 1
+                # record outcome.
+                if first:
+                    record[first][AI][winner] += 1
+                else:
+                    # this is confusing, but if O starts
+                    # the winner values need to be reversed.
+                    if winner == 1:
+                        record[first][AI][0] += 1
+                    elif winner == 0:
+                        record[first][AI][1] += 1
+                    else:
+                        record[first][AI][-1] += 1
+
+                # show progress.
                 fraction = game/number_of_games
                 if not fraction % .01:
                     print(fraction * 50+starting_percent, "% done.")
@@ -333,9 +338,11 @@ def train(EPOCHS, Q1, Q2):
 
         # X's turn equals True, O's turn equals False
         turn = bool(random.getrandbits(1))
+        first = turn
 
         while winner == None:
-            board_state, turn = play_tictactoe_turn_training(Q1, Q2, board_state, turn)
+            board_state, turn = play_tictactoe_turn_training(Q1, Q2,
+                                                    board_state, turn, first)
             winner = check_winner(board_state)
         else:
             winner = None
@@ -343,50 +350,43 @@ def train(EPOCHS, Q1, Q2):
             if not percent % .01:
                 print(percent *100, "% done.")
 
-def play_tictactoe_turn_training(Q1, Q2, state, turn):
+def play_tictactoe_turn_training(Q1, Q2, board_state, turn, first):
     """
         Play a single turn of tic tac toe while training. Updates the Q model.
         Returns the new board state and the next person's turn.
     """
 
-    R = compute_R(state,turn)
+    R = compute_R(board_state, turn)
 
     if random.uniform(0, 1) < EPSILON:
         # exploration
-        action = pick_random_move(state)
+        action = pick_random_move(board_state)
     else:
         # exploitation
-        max_action = float("-inf")
-        store_index_of_max_equals = []
-        for i, action in enumerate(R):
-            temp = max_action
-            if action == max_action:
-                store_index_of_max_equals.append(i)
-            elif action > max_action:
-                store_index_of_max_equals = []
-                store_index_of_max_equals.append(i)
-            max_action = max(max_action,action)
-        action = random.choice(store_index_of_max_equals)
+        if turn == first:
+            brain = Q1
+        else:
+            brain = Q2
 
-    board_state = list(state)
-    if turn:
-        board_state[action] = 1
-        turn = False
-    else:
-        board_state[action] = 0
-        turn = True
-    new_board_state = tuple(board_state)
+        indices_of_possible_moves = get_available_moves(board_state)
+        moves = []
+        for i, move in enumerate(brain[board_state]):
+            if i in indices_of_possible_moves:
+                moves.append(move)
 
-    # it was just the first peron's turn. update Q1 brain.
-    if not turn:
-        Q1[state][action] = ( 1 - LEARNING_RATE ) * Q1[state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(Q1[new_board_state]) )
-    else:
-        Q2[state][action] = ( 1 - LEARNING_RATE ) * Q2[state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(Q2[new_board_state]) )
+        action = max(moves)
+
+    board = list(board_state)
+    board[action] = int(turn)
+    turn = not turn
+    new_board_state = tuple(board)
+
+    brain[board_state][action] = ( 1 - LEARNING_RATE ) * brain[board_state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(brain[new_board_state]) )
 
     return new_board_state, turn
 
 # playing
-def play_game(Q1,Q2):
+def play_game(Q1, Q2):
     def pick_symbol():
         player_symbol = None
         while player_symbol != "X" and player_symbol != "O":
@@ -405,7 +405,8 @@ def play_game(Q1,Q2):
         board_state = tuple(board)
         turn = bool(random.getrandbits(1))
         # the value of 'turn' changes every turn.
-        # need to record its initial value in first to know which brain to use.
+        # need to record its initial value in 'first'
+        # to know which brain to use.
         first = turn
         winner = None
         player_symbol = None
@@ -425,14 +426,12 @@ def play_game(Q1,Q2):
         while winner == None:
             action = -1
 
-            suggested_move = test_Q_with_state_max(playerAI, board_state)
+            print("\nBoard State:")
+            print_board_state(board_state, player_symbol)
 
             if turn:
                 possible_moves = get_available_moves(board_state)
-
-                # show the player where he could go.
-                print("\nBoard State:")
-                print_board_state(board_state, player_symbol)
+                suggested_move = test_Q_with_state_max(playerAI, board_state)
                 print("The possible moves (0-8) are:", possible_moves)
                 print("From the available positions where would you like to go?")
                 print("The algorithm thinks you should go here:", suggested_move)
@@ -441,16 +440,10 @@ def play_game(Q1,Q2):
                 while action not in possible_moves:
                     action = input()
                     action = int(action)
-
             else:
                 action = test_Q_with_state_max(enemyAI, board_state)
 
             board_state, turn = play_tictactoe_turn(action, board_state, turn)
-
-            # show the player where the other guy went.
-            # if turn:
-            #     print("\nBoard State:")
-            #     print_board_state(board_state, player_symbol)
 
             winner = check_winner(board_state)
 
@@ -461,8 +454,6 @@ def play_game(Q1,Q2):
         else:
             print("Tie!")
 
-        # show the player his winning game.
-        # if not turn:
         print_board_state(board_state, player_symbol)
 
         print("Would you like to play again?\n y / n ?\n")
