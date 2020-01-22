@@ -181,7 +181,7 @@ def play_tictactoe_turn(action, board_state, turn):
 
     return new_board_state, turn
 
-def test_Q_with_state_max(Q, board_state):
+def test_Q_with_state_max(Q, board_state, turn):
     """
         Given a trained brain, Q, and a board state:
             (0, 1, 0, 1, None, None, None, None, 0)
@@ -194,7 +194,7 @@ def test_Q_with_state_max(Q, board_state):
     max_indices = set()
     max_choice = float("-inf")
     for i, choice in enumerate(Q[board_state]):
-        if board_state[i] == None:
+        if board_state[i] == None and choice != 0:
             temp = max_choice
             max_choice = max(max_choice,choice)
             if temp != max_choice:
@@ -202,6 +202,20 @@ def test_Q_with_state_max(Q, board_state):
                 max_indices.add(i)
             if choice == max_choice:
                 max_indices.add(i)
+
+    # if max_indices is empty due to all Q values for that state being 0, then
+    # compute the Reward matrix for that state and return the index of the max
+    # value in the matrix
+    if len(max_indices) == 0:
+        reward_matrix = compute_R(board_state, turn)
+        max_index = -1
+        max_reward = float('-inf')
+        for i, reward in enumerate(reward_matrix):
+            store_max = max_reward
+            max_reward = max(max_reward, reward)
+            if store_max != max_reward:
+                max_index = i
+        return max_index
 
     return random.choice(list(max_indices))
 
@@ -228,19 +242,22 @@ def test_single_moves(num_moves, Q1, Q2):
         if first:
             brain = Q1
         else:
-            brain = Q1
+            brain = Q2
 
         rand_state = random.choice(list(brain.keys()))
-        suggested_index_of_move = test_Q_with_state_max(brain, rand_state)
+        suggested_index_of_move = test_Q_with_state_max(brain, rand_state, first)
 
         print("\nBoard State:")
         print(rand_state[:3])
         print(rand_state[3:6])
         print(rand_state[6:9])
 
+        print("It is " + str(first) +
+            " that we are testing the first brain, Q1. (Otherwise Q2.)")
+
         print("\nSuggested next move (0-8):")
         print(suggested_index_of_move)
-        
+
         print()
         print(brain[rand_state])
         print(compute_R(rand_state, first))
@@ -270,9 +287,9 @@ def test_accuracy(number_of_games, Q1, Q2):
                 if AI == turn or AI == both:
                     # if it's the first person who went
                     if turn == first:
-                        suggested_move = test_Q_with_state_max(Q1, board_state)
+                        suggested_move = test_Q_with_state_max(Q1, board_state, turn)
                     else:
-                        suggested_move = test_Q_with_state_max(Q2, board_state)
+                        suggested_move = test_Q_with_state_max(Q2, board_state, turn)
 
                     action = suggested_move
 
@@ -376,7 +393,7 @@ def train(EPOCHS, Q1, Q2):
 
 def play_tictactoe_turn_training(Q1, Q2, board_state, turn, first):
     """
-        Play a single turn of tic tac toe while training. Updates the Q model.
+        Play a single turn of tic tac toe while training. UPDATES THE Q MODEL.
         Returns the new board state and the next person's turn.
     """
 
@@ -392,13 +409,14 @@ def play_tictactoe_turn_training(Q1, Q2, board_state, turn, first):
         action = pick_random_move(board_state)
     else:
         # exploitation
-        action = test_Q_with_state_max(brain, board_state)
+        action = test_Q_with_state_max(brain, board_state, turn)
 
     board = list(board_state)
     board[action] = int(turn)
     turn = not turn
     new_board_state = tuple(board)
 
+    # Update appropriate Q model.
     brain[board_state][action] = ( (1 - LEARNING_RATE)
                                     * brain[board_state][action]
                                     + LEARNING_RATE * ( R[action]
@@ -437,7 +455,7 @@ def play_game(Q1, Q2):
 
             if turn:
                 possible_moves = get_available_moves(board_state)
-                suggested_move = test_Q_with_state_max(playerAI, board_state)
+                suggested_move = test_Q_with_state_max(playerAI, board_state, turn)
                 print("The possible moves (0-8) are:", possible_moves)
                 print("From the available positions where would you like to go?")
                 print("The algorithm thinks you should go here:", suggested_move)
@@ -447,7 +465,7 @@ def play_game(Q1, Q2):
                     action = input()
                     action = int(action)
             else:
-                action = test_Q_with_state_max(enemyAI, board_state)
+                action = test_Q_with_state_max(enemyAI, board_state, turn)
 
             board_state, turn = play_tictactoe_turn(action, board_state, turn)
 
