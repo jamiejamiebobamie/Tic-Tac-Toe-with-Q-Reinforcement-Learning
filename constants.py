@@ -16,10 +16,10 @@ GAMMA = 0.8
 LEARNING_RATE = .01
 
 # number of training epochs
-EPOCHS = 100000
+EPOCHS = 1000000
 
 # the percent you want to explore while training
-EPSILON = 0.2
+EPSILON = 0.4
 
 # for replaying the game
 AFFIRMATIVE = ['y', 'yes', 'yeah', "yea", 'ye']
