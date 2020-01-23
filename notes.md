@@ -15,12 +15,15 @@
 			2: {True: 28569, False: 58734, -1: 12697}
 		}
 }
-### Out of a 400,000 games:
+### Out of 100,000 games:
 The player who goes first has a 58% chance of winning.
-The accuracy of the built model is 96% when the player goes first and a 80-83%
+
+The accuracy of the built model is 96-97% when the player goes first and 79-84%
 when going second.
 
-Notes when brainstorming:
+The games ended in a tie 100% of the time when both players were using the AI.
+
+### Notes when brainstorming:
 
 nine spots three possibilities per spot...
 3^9 = 19683 total arrangements
@@ -33,7 +36,7 @@ valid arrangements appear in dictionary.
 flattened 2d array
 board = [null, null, null, null, null, null, null, null, null]
 
-Results when tuning hyperparameters and fixing algorithm:
+### Results when tuning hyperparameters and fixing algorithm:
 
 {
 True:
