@@ -52,8 +52,8 @@ def generate_initial_Q():
     states_dictionary = {}
 
     # log the intial empty board as a state.
-    empty_board = (None,None,None,None,None,None,None,None,None)
-    states_dictionary[empty_board] = [0,0,0,0,0,0,0,0,0]
+    empty_board_state = (None,None,None,None,None,None,None,None,None)
+    states_dictionary[empty_board_state] = [0,0,0,0,0,0,0,0,0]
 
     # one hundred thousand is enough games to generate all states
     for _ in range(100000):
@@ -115,11 +115,13 @@ def compute_R(board_state, turn):
             else:
                 O_position.add(i)
 
-    for i, score in enumerate(Reward_Array):
-        if score != -1:
+    # builds up the values in the rewards array by iterating through the board
+    # and testing if either the opponent or the player is one move away from
+    # winning
+    for i, reward in enumerate(Reward_Array):
+        if reward != -1:
 
             test_board_state = list()
-
             # deep copy needed.
             for j, move in enumerate(board_state):
                 if j != i:
@@ -128,13 +130,11 @@ def compute_R(board_state, turn):
                     test_board_state.append(int(turn))
 
             possible_winner = check_winner(test_board_state)
-
             # if the possible winner equals the person's who turn it is.
             if possible_winner == turn:
                 Reward_Array[i] += 100 # LOG WINNING MOVE.
 
             test_board_state = list()
-
             # deep copy needed.
             for j, move in enumerate(board_state):
                 if j != i:
@@ -143,7 +143,6 @@ def compute_R(board_state, turn):
                     test_board_state.append(int(not turn))
 
             possible_winner = check_winner(test_board_state)
-
             # if the possible winner equals the other guy.
             if possible_winner == (not turn):
                 Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
@@ -176,7 +175,8 @@ def get_available_moves(board_state):
          a tuple of the board's state
 
     Output:
-         an array of board positions/indices of possible moves.
+         an array of board positions/indices of possible moves:
+            [3,4,5,6,7,8]
     """
     possible_moves = []
     for i, moves in enumerate(board_state):
@@ -198,23 +198,20 @@ def play_tictactoe_turn(action, board_state, turn):
 
          turn:
             1/0
-         the player's who's turn it is.
+         the player's who's turn it is
 
     Output:
-         a new board state and the next person's turn.
+         a new board state and the next person's turn:
+            (0,1,0,None,None,None,None,None,1)
     """
     board = list(board_state)
-    if turn:
-        board[action] = 1
-        turn = False
-    else:
-        board[action] = 0
-        turn = True
+    board[action] = int(turn)
+    turn = not turn
     new_board_state = tuple(board)
 
     return new_board_state, turn
 
-def test_Q_with_state_max(Q, board_state):
+def suggest_move(Q, board_state):
     """
         Given a trained brain, Q, and a board state:
             (0, 1, 0, 1, None, None, None, None, 0)
@@ -254,14 +251,59 @@ def reset_game():
     return board, board_state, turn, winner, player_symbol
 # -- - end general_purpose methods - - --- - -
 
+# training
+def train(EPOCHS, Q):
+    for epoch in range(EPOCHS):
+
+        # ignore 'player_symbol' variable.
+        board, board_state, turn, winner, player_symbol = reset_game()
+
+        while winner == None:
+            board_state, turn = play_tictactoe_turn_training(Q,
+                                                    board_state, turn)
+            winner = check_winner(board_state)
+        else:
+            percent = epoch/EPOCHS
+            if not percent % .01:
+                print(percent *100, "% done.")
+
+def play_tictactoe_turn_training(Q, board_state, turn):
+    """
+        Play a single turn of tic tac toe while training.
+
+        * * * UPDATES THE Q MODEL. * * *
+
+        Returns the new board state and the next person's turn.
+    """
+
+    R = compute_R(board_state, turn)
+
+    if random.uniform(0, 1) < EPSILON:
+        # exploration
+        action = pick_random_move(board_state)
+    else:
+        # exploitation
+        action = suggest_move(Q, board_state)
+
+    board = list(board_state)
+    board[action] = int(turn)
+    turn = not turn
+    new_board_state = tuple(board)
+
+    # Update the Q model.
+    Q[board_state][action] = ( (1 - LEARNING_RATE)
+                                    * Q[board_state][action]
+                                    + LEARNING_RATE * ( R[action]
+                                    + GAMMA * max(Q[new_board_state])) )
+
+    return new_board_state, turn
+
 # testing / validation
 def test_single_moves(num_moves, Q):
     for _ in range(num_moves):
 
-        first = bool(random.getrandbits(1))
-
         rand_state = random.choice(list(Q.keys()))
-        suggested_index_of_move = test_Q_with_state_max(Q, rand_state)
+        suggested_index_of_move = suggest_move(Q, rand_state)
 
         print("\nBoard State:")
         print(rand_state[:3])
@@ -270,10 +312,6 @@ def test_single_moves(num_moves, Q):
 
         print("\nSuggested next move (0-8):")
         print(suggested_index_of_move)
-
-        print()
-        print(Q[rand_state])
-        print(compute_R(rand_state, first))
 
 def test_accuracy(number_of_games, Q):
     def unit_test(first, AI, starting_percent=0):
@@ -297,8 +335,9 @@ def test_accuracy(number_of_games, Q):
             while winner == None:
                 # play match.
 
+                # use AI (or not)
                 if AI == turn or AI == both:
-                    suggested_move = test_Q_with_state_max(Q, board_state)
+                    suggested_move = suggest_move(Q, board_state)
                     action = suggested_move
                 else:
                     action = pick_random_move(board_state)
@@ -365,53 +404,6 @@ def test_accuracy(number_of_games, Q):
 
     print(record)
 
-# training
-def train(EPOCHS, Q):
-    for epoch in range(EPOCHS):
-
-        # ignore 'player_symbol' variable.
-        board, board_state, turn, winner, player_symbol = reset_game()
-
-        while winner == None:
-            board_state, turn = play_tictactoe_turn_training(Q,
-                                                    board_state, turn)
-            winner = check_winner(board_state)
-        else:
-            percent = epoch/EPOCHS
-            if not percent % .01:
-                print(percent *100, "% done.")
-
-def play_tictactoe_turn_training(Q, board_state, turn):
-    """
-        Play a single turn of tic tac toe while training.
-
-        * * * UPDATES THE Q MODEL. * * *
-
-        Returns the new board state and the next person's turn.
-    """
-
-    R = compute_R(board_state, turn)
-
-    if random.uniform(0, 1) < EPSILON:
-        # exploration
-        action = pick_random_move(board_state)
-    else:
-        # exploitation
-        action = test_Q_with_state_max(Q, board_state)
-
-    board = list(board_state)
-    board[action] = int(turn)
-    turn = not turn
-    new_board_state = tuple(board)
-
-    # Update the Q model.
-    Q[board_state][action] = ( (1 - LEARNING_RATE)
-                                    * Q[board_state][action]
-                                    + LEARNING_RATE * ( R[action]
-                                    + GAMMA * max(Q[new_board_state])) )
-
-    return new_board_state, turn
-
 # playing
 def play_game(Q):
     def pick_symbol():
@@ -424,11 +416,11 @@ def play_game(Q):
 
         return player_symbol
 
-    board, board_state, turn, winner, player_symbol = reset_game()
-
     play_again = 'y'
     while play_again in AFFIRMATIVE:
-        player_symbol  = pick_symbol()
+
+        board, board_state, turn, winner, player_symbol = reset_game()
+        player_symbol = pick_symbol()
 
         while winner == None:
             action = -1
@@ -436,7 +428,7 @@ def play_game(Q):
             print("\nBoard State:")
             print_board_state(board_state, player_symbol)
 
-            suggested_move = test_Q_with_state_max(Q, board_state)
+            suggested_move = suggest_move(Q, board_state)
 
             if turn:
                 possible_moves = get_available_moves(board_state)
@@ -467,9 +459,6 @@ def play_game(Q):
         print("Would you like to play again?\n y / n ?\n")
         play_again = input()
         play_again = play_again.lower()
-
-        # reset game
-        board, board_state, turn, winner, player_symbol = reset_game()
 
 def print_board_state(board_state, player_symbol):
     if player_symbol == "X":
