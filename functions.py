@@ -84,13 +84,18 @@ def generate_initial_Q():
 def compute_R(board_state, turn):
     """
     Input:
-         board_state is a tuple of the board's positions.
-         turn is 1/0 indicating if
-            it's the first-person's turn (1) or the second's (0)
-            (whoever originally went first)
+         board_state:
+            (0,1,0,None,None,None,None,None,None)
+         a tuple of the board's state
+
+         turn:
+            1/0
+         indicates if it's the first-person's turn (1) or the second's (0)
+         (whoever originally went first)
 
     Output:
-        Returns the reward array for the current state.
+        an array of integers.
+        the largest int being the best move / biggest reward.
         Immediate gratification.
     """
 
@@ -147,7 +152,13 @@ def compute_R(board_state, turn):
 
 def pick_random_move(board_state):
     """
-        Returns a random move from the possibilities.
+    Input:
+         board_state:
+            (0,1,0,None,None,None,None,None,None)
+         a tuple of the board's state
+
+    Output:
+         a random move from the possibilities.
     """
     possible_moves = get_available_moves(board_state)
     number_of_possible_moves = len(possible_moves)
@@ -159,10 +170,13 @@ def pick_random_move(board_state):
 
 def get_available_moves(board_state):
     """
-        Determine which indices into the board array contain None.
-        These are the possible moves.
+    Input:
+         board_state:
+            (0,1,0,None,None,None,None,None,None)
+         a tuple of the board's state
 
-        Returns an array of board positions/indices of possible moves.
+    Output:
+         an array of board positions/indices of possible moves.
     """
     possible_moves = []
     for i, moves in enumerate(board_state):
@@ -173,8 +187,21 @@ def get_available_moves(board_state):
 
 def play_tictactoe_turn(action, board_state, turn):
     """
-        Play a single turn of tic tac toe.
-        Returns the new board state and the next person's turn.
+    Input:
+         action:
+            0-8
+         an index into the board array
+
+         board_state:
+            (0,1,0,None,None,None,None,None,None)
+         a tuple of the board's state
+
+         turn:
+            1/0
+         the player's who's turn it is.
+
+    Output:
+         a new board state and the next person's turn.
     """
     board = list(board_state)
     if turn:
