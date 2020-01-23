@@ -10,7 +10,8 @@ WINNERS.add((0,4,8))
 WINNERS.add((2,4,6))
 
 # "a discount factor... used to balance immediate and future reward."
-GAMMA = 0.8
+# the internet says it should be between .8 and 1, but .1 seems to be good.
+GAMMA = 0.1
 
 # the rate to learn. should be a fraction between 0 and 1.
 LEARNING_RATE = .01
@@ -19,7 +20,7 @@ LEARNING_RATE = .01
 EPOCHS = 100000
 
 # the percent you want to explore while training
-EPSILON = 0.2
+EPSILON = 0.5
 
 # for replaying the game
 AFFIRMATIVE = ['y', 'yes', 'yeah', "yea", 'ye']

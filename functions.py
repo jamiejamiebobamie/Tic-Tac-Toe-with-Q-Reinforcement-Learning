@@ -124,10 +124,25 @@ def compute_R(board_state, turn):
 
             possible_winner = check_winner(test_board_state)
 
+            # print(possible_winner)
+
             # if the possible winner equals the person's who turn it is.
             if possible_winner == turn:
                 Reward_Array[i] += 100 # LOG WINNING MOVE.
-            elif possible_winner != -1 and possible_winner != None:
+
+            test_board_state = list()
+
+            # deep copy needed.
+            for j, move in enumerate(board_state):
+                if j != i:
+                    test_board_state.append(move)
+                else:
+                    test_board_state.append(int(not turn))
+
+            possible_winner = check_winner(test_board_state)
+
+            # if the possible winner equals the other guy.
+            if possible_winner == (not turn):
                 Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
 
     return Reward_Array
@@ -204,11 +219,14 @@ def test_Q_with_state_max(Q, board_state, turn):
             if choice == max_choice:
                 max_indices.add(i)
 
+    reward_matrix = compute_R(board_state, turn)
+
+    # print(Q_reward_array, reward_matrix)
+
     # if max_indices is empty due to all Q values for that state being 0, then
     # compute the Reward matrix for that state and return the index of the max
     # value in the matrix
     if len(max_indices) == 0:
-        reward_matrix = compute_R(board_state, turn)
         max_index = -1
         max_reward = float('-inf')
         for i, reward in enumerate(reward_matrix):
