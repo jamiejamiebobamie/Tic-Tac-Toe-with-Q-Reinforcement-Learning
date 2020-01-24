@@ -287,3 +287,10 @@ GAMMA =  0.1 LEARNING_RATE = .01 EPOCHS = 10000 EPSILON = 0.5
 GAMMA =  0.1 LEARNING_RATE = .01 EPOCHS = 100000 EPSILON = 0.5
 
 {True: {True: {True: 96038, False: 788, -1: 3174}, False: {True: 4743, False: 83903, -1: 11354}, -1: {True: 0, False: 0, -1: 100000}, 2: {True: 58391, False: 28942, -1: 12667}}, False: {True: {True: 79235, False: 6115, -1: 14650}, False: {True: 548, False: 96858, -1: 2594}, -1: {True: 0, False: 0, -1: 100000}, 2: {True: 28569, False: 58734, -1: 12697}}}
+
+pickled brain:
+GAMMA = .1
+LEARNING_RATE = .01
+EPOCHS = 10000000
+EPSILON = 0.5
+{True: {True: {True: 9483, False: 0, -1: 517}, False: {True: 335, False: 8537, -1: 1128}, -1: {True: 0, False: 0, -1: 10000}, 2: {True: 3550, False: 2881, -1: 3569}}, False: {True: {True: 8674, False: 327, -1: 999}, False: {True: 0, False: 9570, -1: 430}, -1: {True: 0, False: 0, -1: 10000}, 2: {True: 2899, False: 3607, -1: 3494}}}

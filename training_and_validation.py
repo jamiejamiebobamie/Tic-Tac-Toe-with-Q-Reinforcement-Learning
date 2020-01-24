@@ -20,7 +20,8 @@ test_accuracy(10000, Q)
 print("Done testing.\n")
 
 print('Pickling brain.')
-convert_Q_to_csv(Q)
+filepath = 'pickled_brain2.csv'
+convert_Q_to_csv(Q,filepath)
 print("Pickled and ready for future consumption.")
 
 print("Testing if pickled brain worked.")

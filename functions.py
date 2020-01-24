@@ -484,9 +484,9 @@ def print_board_state(board_state, player_symbol):
 import pandas as pd
 import csv
 
-def convert_Q_to_csv(Q):
+def convert_Q_to_csv(Q, filepath):
     # https://stackoverflow.com/questions/8685809/writing-a-dictionary-to-a-csv-file-with-one-line-for-every-key-value
-    pd.DataFrame.from_dict(data=Q, orient='index').to_csv('pickled_brain.csv', header=False)
+    pd.DataFrame.from_dict(data=Q, orient='index').to_csv(filepath, header=False)
 
 def convert_csv_to_Q(file_path):
     with open(file_path) as csv_file:
