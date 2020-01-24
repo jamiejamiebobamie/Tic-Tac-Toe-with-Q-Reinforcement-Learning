@@ -1,5 +1,6 @@
 from constants import EPOCHS
-from functions import generate_initial_Q, train, test_accuracy, test_single_moves
+from functions import (generate_initial_Q, train, test_accuracy,
+                            test_single_moves, convert_Q_to_csv)
 
 # initialize
 print("Initializing Q.")
@@ -17,3 +18,13 @@ test_accuracy(EPOCHS, Q)
 # test_single_moves(20, Q)
 # print(Q)
 print("Done testing.\n")
+
+print('Pickling brain.')
+convert_Q_to_csv(Q)
+print("Pickled and ready for future consumption.")
+
+print("Testing if pickled brain worked.")
+file_path = 'pickled_brain.csv'
+pickled_Q = convert_csv_to_Q(file_path)
+test_accuracy(EPOCHS, pickled_Q)
+print("You'll know if it worked...")

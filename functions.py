@@ -108,21 +108,14 @@ def compute_R(board_state, turn):
         Immediate gratification.
     """
 
-    # sets of indices where X has gone, O has gone, and no one has gone.
-    X_position = set()
-    O_position = set()
-    None_position = set()
-    Reward_Array = [] # possible actions given current state
+    # possible actions given current state
+    Reward_Array = []
+
     for i, board_position in enumerate(board_state):
         if board_position == None:
             Reward_Array.append(0)
-            None_position.add(i)
         else:
             Reward_Array.append(-1)
-            if board_position == 1:
-                X_position.add(i)
-            else:
-                O_position.add(i)
 
     # builds up the values in the rewards array by iterating through the board
     # and testing if either the opponent or the player is one move away from
@@ -228,7 +221,8 @@ def suggest_move(Q, board_state):
     """
     winner = check_winner(board_state)
     if winner != None:
-        return -1 # there is already a winner.
+        # there is already a winner.
+        return -1
 
     max_indices = set()
     max_choice = float("-inf")
@@ -285,6 +279,7 @@ def play_tictactoe_turn_training(Q, board_state, turn):
         Returns the new board state and the next person's turn.
     """
 
+    # the immediate rewards based on the given board_state
     R = compute_R(board_state, turn)
 
     if random.uniform(0, 1) < EPSILON:
@@ -484,3 +479,20 @@ def print_board_state(board_state, player_symbol):
     print(board[:3])
     print(board[3:6])
     print(board[6:9])
+
+# output / storing the model
+import pandas as pd
+import csv
+
+def convert_Q_to_csv(Q):
+    # from:
+    # https://stackoverflow.com/questions/8685809/writing-a-dictionary-to-a-csv-file-with-one-line-for-every-key-value
+    pd.DataFrame.from_dict(data=Q, orient='index'
+       .to_csv('pickled_brain.csv', header=True))
+
+def convert_csv_to_Q(file_path):
+    with open(file_path) as csv_file:
+        reader = csv.reader(csv_file)
+        Q = dict(reader)
+
+    return Q
