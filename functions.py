@@ -19,18 +19,18 @@ def check_winner(board_state):
         (1 and 0 can represent X's or O's in the game
         and either 1 or 0 can go first.)
     """
-    One = set()
-    Zero = set()
+    indices_ones = set()
+    indices_zeroes = set()
 
-    # iterate over board spaces. record inidices in sets.
+    # iterate over board spaces. record indices in sets.
     for i, board_space in enumerate(board_state):
         if board_space == 1:
-            One.add(i)
+            indices_ones.add(i)
         elif board_space == 0:
-            Zero.add(i)
+            indices_zeroes.add(i)
 
     # tie
-    if len(One) + len(Zero) == len(board_state):
+    if len(indices_ones) + len(indices_zeroes) == len(board_state):
         return -1
 
     # iterate through the set of winner tuples.
@@ -40,11 +40,11 @@ def check_winner(board_state):
         One_count = 0
         Zero_count = 0
         for w in winner:
-            if w in X:
+            if w in indices_ones:
                 One_count += 1
-            elif w in O:
+            elif w in indices_zeroes:
                 Zero_count += 1
-                
+
          # 1 wins
         if One_count == 3:
             return 1
