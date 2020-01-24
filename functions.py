@@ -492,6 +492,8 @@ def convert_csv_to_Q(file_path):
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file)
         # https://stackoverflow.com/questions/6740918/creating-a-dictionary-from-a-csv-file
+
+        # currently keys are strings and values are not lists!
         Q = dict((row[0],row[1]) for row in reader)
 
     return Q

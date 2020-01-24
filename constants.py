@@ -11,13 +11,13 @@ WINNERS.add((2,4,6))
 
 # "a discount factor... used to balance immediate and future reward."
 # the internet says it should be between .8 and 1, but .1 seems to be good.
-GAMMA = .01
+GAMMA = .1
 
 # the rate to learn. should be a fraction between 0 and 1.
 LEARNING_RATE = .01
 
 # number of training epochs
-EPOCHS = 1000000
+EPOCHS = 10000000
 
 # the percent you want to explore while training
 EPSILON = 0.5
