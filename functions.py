@@ -6,42 +6,51 @@ def check_winner(board_state):
     """
         Time complexity : O(33)
         Iterates over the board spaces,
-        Recording the indices of X's (1) and O's (0) in two sets.
+        Recording the indices of 1's (1) and 0's (0) in two sets.
 
         Iterates through the winning combinations in WINNERS
         to see if there is a winner.
 
-        Returns 1, 0, or -1 if X wins, O wins,
+        Returns 1, 0, or -1 if 1 wins, 0 wins,
         or if there is a tie, respectively.
 
         Returns None if there is no winner or tie.
-    """
-    X = set()
-    O = set()
 
-    # O(9)
+        (1 and 0 can represent X's or O's in the game
+        and either 1 or 0 can go first.)
+    """
+    One = set()
+    Zero = set()
+
+    # iterate over board spaces. record inidices in sets.
     for i, board_space in enumerate(board_state):
         if board_space == 1:
-            X.add(i)
+            One.add(i)
         elif board_space == 0:
-            O.add(i)
+            Zero.add(i)
 
-    # O(8*3) = O(24)
+    # tie
+    if len(One) + len(Zero) == len(board_state):
+        return -1
+
+    # iterate through the set of winner tuples.
+    # for each item in a winning configuration, check
+    # if the item is contained in one of the sets.
     for winner in WINNERS:
-        X_count = 0
-        O_count = 0
+        One_count = 0
+        Zero_count = 0
         for w in winner:
             if w in X:
-                X_count += 1
+                One_count += 1
             elif w in O:
-                O_count += 1
-        if X_count == 3:
-            return 1 # X wins
-        elif O_count == 3:
-            return 0 # O wins
-
-    if len(X) + len(O) == len(board_state):
-        return -1 # tie
+                Zero_count += 1
+                
+         # 1 wins
+        if One_count == 3:
+            return 1
+         # 0 wins
+        elif Zero_count == 3:
+            return 0
 
 def generate_initial_Q():
     """
@@ -285,10 +294,7 @@ def play_tictactoe_turn_training(Q, board_state, turn):
         # exploitation
         action = suggest_move(Q, board_state)
 
-    board = list(board_state)
-    board[action] = int(turn)
-    turn = not turn
-    new_board_state = tuple(board)
+    new_board_state, turn = play_tictactoe_turn(action, board_state, turn)
 
     # Update the Q model.
     Q[board_state][action] = ( (1 - LEARNING_RATE)
