@@ -485,14 +485,13 @@ import pandas as pd
 import csv
 
 def convert_Q_to_csv(Q):
-    # from:
     # https://stackoverflow.com/questions/8685809/writing-a-dictionary-to-a-csv-file-with-one-line-for-every-key-value
-    pd.DataFrame.from_dict(data=Q, orient='index'
-       .to_csv('pickled_brain.csv', header=True))
+    pd.DataFrame.from_dict(data=Q, orient='index').to_csv('pickled_brain.csv', header=False)
 
 def convert_csv_to_Q(file_path):
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file)
-        Q = dict(reader)
+        # https://stackoverflow.com/questions/6740918/creating-a-dictionary-from-a-csv-file
+        Q = dict((row[0],row[1]) for row in reader)
 
     return Q
