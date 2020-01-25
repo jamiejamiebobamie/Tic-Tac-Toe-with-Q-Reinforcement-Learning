@@ -45,10 +45,10 @@ def check_winner(board_state):
             elif w in indices_zeroes:
                 Zero_count += 1
 
-         # 1 wins
+        # 1 wins
         if One_count == 3:
             return 1
-         # 0 wins
+        # 0 wins
         elif Zero_count == 3:
             return 0
 
@@ -61,9 +61,10 @@ def generate_initial_Q():
     # 'Q' stands for 'Quality'.
     Q = {}
     # a dictionary of states:
-    #       (turn, board_state)
+    #       state = (turn, board_state)
     # associated with actions:
-    #       [0,0,0,0,0,0,0,0,0]
+    #       actions = [0,0,0,0,0,0,0,0,0]
+    # Q = { state: actions }
 
 
     # log the intial empty board and player's turn (True or False) as a state.
@@ -96,7 +97,7 @@ def generate_initial_Q():
 
             winner = check_winner(board_state)
 
-    return Q # 8953 possible states, but 3**9 or 19683 in all
+    return Q # 8953 valid states, but 3**9 or 19683 in all
 
 def compute_R(state):
     """
@@ -111,7 +112,7 @@ def compute_R(state):
          (whoever originally went first)
 
     Output:
-        an array of integers.
+        an array of int.
         the largest int being the best move / biggest reward.
         Immediate gratification.
     """
@@ -120,6 +121,7 @@ def compute_R(state):
     # possible actions given current state
     Reward_Array = []
 
+    # look for empty board_positions
     for i, board_position in enumerate(board_state):
         if board_position == None:
             Reward_Array.append(0)
@@ -134,9 +136,9 @@ def compute_R(state):
 
             test_board_state = list()
             # deep copy needed.
-            for j, move in enumerate(board_state):
+            for j, board_position in enumerate(board_state):
                 if j != i:
-                    test_board_state.append(move)
+                    test_board_state.append(board_position)
                 else:
                     test_board_state.append(int(turn))
 
@@ -147,9 +149,9 @@ def compute_R(state):
 
             test_board_state = list()
             # deep copy needed.
-            for j, move in enumerate(board_state):
+            for j, board_position in enumerate(board_state):
                 if j != i:
-                    test_board_state.append(move)
+                    test_board_state.append(board_position)
                 else:
                     test_board_state.append(int(not turn))
 
@@ -157,8 +159,6 @@ def compute_R(state):
             # if the possible winner equals the other guy.
             if possible_winner == (not turn):
                 Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
-
-    # print(state, Reward_Array) # it's working.
 
     return Reward_Array
 
@@ -195,8 +195,8 @@ def get_available_moves(board_state):
             [3,4,5,6,7,8]
     """
     possible_moves = []
-    for i, moves in enumerate(board_state):
-        if moves == None:
+    for i, board_position in enumerate(board_state):
+        if board_position == None:
             possible_moves.append(i)
 
     return possible_moves
@@ -240,8 +240,8 @@ def suggest_move(Q, state):
     """
     board_state = state[1]
     winner = check_winner(board_state)
+    # there is already a winner.
     if winner != None:
-        # there is already a winner.
         return -1
 
     max_indices = set()
@@ -296,11 +296,21 @@ def train(EPOCHS, Q):
         board, state, winner, player_symbol = reset_game()
 
         while winner == None:
+            last_state = state
             state = play_tictactoe_turn_training(Q, state)
             board_state = state[1]
             winner = check_winner(board_state)
 
         else:
+            # reward winning state.
+            # winning_state = last_state
+            # reward_array = compute_R(winning_state)
+            # winning_actions = Q[winning_state]
+            #
+            # for i, reward in enumerate(reward_array):
+            #     if reward >= 0:
+            #         winning_actions[i] += reward * LEARNING_RATE * GAMMA
+
             percent = epoch/EPOCHS
             if not percent % .01:
                 print(percent *100, "% done.")
@@ -327,9 +337,11 @@ def play_tictactoe_turn_training(Q, state):
 
     next_state = play_tictactoe_turn(action, state)
 
-    # print(state, R, Q[state])
     # Update the Q model.
-    Q[state][action] = (1 - LEARNING_RATE) * Q[state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(Q[next_state]) )
+    Q[state][action] = ( (1 - LEARNING_RATE) * Q[state][action]
+                                                + LEARNING_RATE
+                                                * ( R[action] + GAMMA
+                                                    * max(Q[next_state]) ) )
 
     return next_state
 
@@ -380,7 +392,8 @@ def test_accuracy(number_of_games, Q):
                     suggested_move = suggest_move(Q, state)
                     action = suggested_move
                 else:
-                    action = pick_random_move(state)
+                    board_state = state[1]
+                    action = pick_random_move(board_state)
 
                 state = play_tictactoe_turn(action, state)
                 board_state = state[1]
@@ -421,26 +434,27 @@ def test_accuracy(number_of_games, Q):
     print("Testing when X goes first and X is using the AI.")
     unit_test(first=X, AI=X, starting_percent=0)
 
-    print("Testing when O goes first and O is using the AI.")
-    unit_test(first=O, AI=O, starting_percent=50)
+    print("Testing when X goes first and O is using AI.")
+    unit_test(first=X, AI=O, starting_percent=0)
 
     print("Testing when X goes first and both players have AI.")
     unit_test(first=X, AI=both, starting_percent=0)
 
+    print("Testing when O goes first and O is using the AI.")
+    unit_test(first=O, AI=O, starting_percent=0)
+
+    print("Testing when O goes first and X is using AI.")
+    unit_test(first=O, AI=X, starting_percent=0)
+
     print("Testing when O goes first and both players have AI.")
-    unit_test(first=O, AI=both, starting_percent=50)
+    unit_test(first=O, AI=both, starting_percent=0)
 
     print("Testing when X goes first and neither is using AI.")
     unit_test(first=X, AI=neither, starting_percent=0)
 
     print("Testing when O goes first and neither is using AI.")
-    unit_test(first=O, AI=neither, starting_percent=50)
+    unit_test(first=O, AI=neither, starting_percent=0)
 
-    print("Testing when X goes first and O is using AI.")
-    unit_test(first=X, AI=O, starting_percent=0)
-
-    print("Testing when O goes first and X is using AI.")
-    unit_test(first=O, AI=X, starting_percent=50)
 
     print(record)
 
@@ -466,7 +480,7 @@ def play_game(Q):
             action = -1
 
             print("\nBoard State:")
-            board_state = state[1]
+            turn, board_state = state
             print_board_state(board_state, player_symbol)
 
             suggested_move = suggest_move(Q, state)
@@ -485,7 +499,7 @@ def play_game(Q):
                 action = suggested_move
 
             state = play_tictactoe_turn(action, state)
-            board_state = state[1]
+            # turn, board_state = state
             winner = check_winner(board_state)
 
         if winner == 1:
@@ -520,7 +534,7 @@ def print_board_state(board_state, player_symbol):
     print(board[3:6])
     print(board[6:9])
 
-# output / storing the model
+# storing the model and unpacking the stored model for use.
 import pandas as pd
 import csv
 
@@ -528,6 +542,7 @@ def convert_Q_to_csv(Q, filepath):
     # https://stackoverflow.com/questions/8685809/writing-a-dictionary-to-a-csv-file-with-one-line-for-every-key-value
     pd.DataFrame.from_dict(data=Q, orient='index').to_csv(filepath, header=False)
 
+# NEED TO CHANGE THIS METHOD FOR THE NEW KEY VALUE PAIR IN Q!
 def convert_csv_to_Q(file_path):
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file)
