@@ -58,17 +58,24 @@ def generate_initial_Q():
         Returns a dictionary of states associated with an array of actions.
         All actions are set to an intial value of zero.
     """
-    states_dictionary = {}
+    # 'Q' stands for 'Quality'.
+    Q = {}
+    # a dictionary of states:
+    #       (turn, board_state)
+    # associated with actions:
+    #       [0,0,0,0,0,0,0,0,0]
 
-    # log the intial empty board and player's turn (1 or 0) as a state.
-    empty_board_state = (None,None,None,None,None,None,None,None,None)
-    state_1 = (True, empty_board_state)
-    state_0 = (False, empty_board_state)
-    # actions are all initialized to zero.
-    states_dictionary[state_1] = [0,0,0,0,0,0,0,0,0]
-    states_dictionary[state_0] = [0,0,0,0,0,0,0,0,0]
 
-    # one hundred thousand is enough games to generate all states
+    # log the intial empty board and player's turn (True or False) as a state.
+    state = (True, (None,None,None,None,None,None,None,None,None))
+    # actions are all initialized to zero. action indices are associated with
+        # the indices of board positions.
+    Q[state] = [0,0,0,0,0,0,0,0,0]
+
+    state = (False, (None,None,None,None,None,None,None,None,None))
+    Q[state] = [0,0,0,0,0,0,0,0,0]
+
+    # play enough games to generate all states.
     for _ in range(100000):
 
         board = [None,None,None,None,None,None,None,None,None]
@@ -79,18 +86,17 @@ def generate_initial_Q():
         winner = None
         while winner == None:
 
-            move_here = pick_random_move(board)
+            board_state = state[1]
+            move_here = pick_random_move(board_state)
             action = move_here
             state = play_tictactoe_turn(action, state)
 
-            if state not in states_dictionary:
-                # all states of Q should be initialized to 0
-                states_dictionary[state] = [0,0,0, 0,0,0, 0,0,0]
+            if state not in Q:
+                Q[state] = [0,0,0, 0,0,0, 0,0,0]
 
-            board_state = state[1]
             winner = check_winner(board_state)
 
-    return states_dictionary # 8953 possible states, but 3**9 or 19683 in all
+    return Q # 8953 possible states, but 3**9 or 19683 in all
 
 def compute_R(state):
     """
@@ -168,6 +174,9 @@ def pick_random_move(board_state):
     """
     possible_moves = get_available_moves(board_state)
     number_of_possible_moves = len(possible_moves)
+
+    if number_of_possible_moves < 1:
+        return -1
 
     random_index_into_possible_moves = random.randint(0,
                                                 number_of_possible_moves-1)
