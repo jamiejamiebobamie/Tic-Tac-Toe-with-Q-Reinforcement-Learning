@@ -227,7 +227,16 @@ def suggest_move(Q, board_state):
     max_indices = set()
     max_choice = float("-inf")
 
-    Q_reward_array = Q[board_state]
+    # test to see if the move is in the dictionary.
+    valid = Q.get(board_state, None)
+
+    # if it is not, add an empty set of actions to the brain.
+    if not valid:
+        empty_actions = [0,0,0,0,0,0,0,0,0]
+        Q.update( {board_state: empty_actions} )
+
+    valid = Q.get(board_state, None)
+    Q_reward_array = valid
 
     # find all of the max positions from the Q for a given state.
     for i, choice in enumerate(Q_reward_array):
@@ -492,8 +501,26 @@ def convert_csv_to_Q(file_path):
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file)
         # https://stackoverflow.com/questions/6740918/creating-a-dictionary-from-a-csv-file
-
+        Q = dict()
         # currently keys are strings and values are not lists!
-        Q = dict((row[0],row[1]) for row in reader)
+        for row in reader:
+            key_list = row[0][2:-1].split(",")
+            for i, item in enumerate(key_list):
+                if item == ' 1':
+                    key_list[i] = 1
+                elif item == ' 0':
+                    key_list[i] = 0
+                else:
+                    key_list[i] = None
+
+            key = tuple(key_list)
+
+            value = list()
+            i = 1
+            while i < len(row):
+                new_value = float(row[i])
+                value.append(new_value)
+                i+=1
+            Q.update( {key: value} )
 
     return Q
