@@ -23,10 +23,10 @@ def check_winner(board_state):
     indices_zeroes = set()
 
     # iterate over board spaces. record indices in sets.
-    for i, board_position in enumerate(board_state):
-        if board_position == 1:
+    for i, board_space in enumerate(board_state):
+        if board_space == 1:
             indices_ones.add(i)
-        elif board_position == 0:
+        elif board_space == 0:
             indices_zeroes.add(i)
 
     # tie
@@ -60,39 +60,37 @@ def generate_initial_Q():
     """
     states_dictionary = {}
 
-    # log the intial empty board and player's turn (1 or 0) as a state.
+    # log the intial empty board as a state.
     empty_board_state = (None,None,None,None,None,None,None,None,None)
-    state_1 = (True, empty_board_state)
-    state_0 = (False, empty_board_state)
-    # actions are all initialized to zero.
-    states_dictionary[state_1] = [0,0,0,0,0,0,0,0,0]
-    states_dictionary[state_0] = [0,0,0,0,0,0,0,0,0]
+    states_dictionary[empty_board_state] = [0,0,0,0,0,0,0,0,0]
 
     # one hundred thousand is enough games to generate all states
     for _ in range(100000):
-
-        board = [None,None,None,None,None,None,None,None,None]
-        board_state = tuple(board)
-        turn = bool(random.getrandbits(1))
-        state = (turn, board_state)
-
         winner = None
+        board = [None,None,None,None,None,None,None,None,None]
+        turn = bool(random.getrandbits(1))
+
         while winner == None:
 
             move_here = pick_random_move(board)
-            action = move_here
-            state = play_tictactoe_turn(action, state)
+            if turn: # X's turn
+                board[move_here] = 1
+                turn = False
+            else: # O's turn
+                board[move_here] = 0
+                turn = True
 
-            if state not in states_dictionary:
+            board_state = tuple(board)
+            # log the state and actions
+            if board_state not in states_dictionary:
                 # all states of Q should be initialized to 0
-                states_dictionary[state] = [0,0,0, 0,0,0, 0,0,0]
+                states_dictionary[board_state] = [0,0,0, 0,0,0, 0,0,0]
 
-            board_state = state[1]
             winner = check_winner(board_state)
 
-    return states_dictionary # 8953 possible states, but 3**9 or 19683 in all
+    return states_dictionary # 8953 possible states
 
-def compute_R(state):
+def compute_R(board_state, turn):
     """
     Input:
          board_state:
@@ -109,7 +107,6 @@ def compute_R(state):
         the largest int being the best move / biggest reward.
         Immediate gratification.
     """
-    turn, board_state = state
 
     # possible actions given current state
     Reward_Array = []
@@ -152,8 +149,6 @@ def compute_R(state):
             if possible_winner == (not turn):
                 Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
 
-    # print(state, Reward_Array) # it's working.
-
     return Reward_Array
 
 def pick_random_move(board_state):
@@ -192,7 +187,7 @@ def get_available_moves(board_state):
 
     return possible_moves
 
-def play_tictactoe_turn(action, state):
+def play_tictactoe_turn(action, board_state, turn):
     """
     Input:
          action:
@@ -211,25 +206,19 @@ def play_tictactoe_turn(action, state):
          a new board state and the next person's turn:
             (0,1,0,None,None,None,None,None,1)
     """
-
-    turn, board_state = state
-
     board = list(board_state)
     board[action] = int(turn)
     turn = not turn
     new_board_state = tuple(board)
 
-    state = (turn, new_board_state)
+    return new_board_state, turn
 
-    return state
-
-def suggest_move(Q, state):
+def suggest_move(Q, board_state):
     """
-        Given a trained brain, Q, and a state:
-            (1, (0, 1, 0, 1, None, None, None, None, 0))
+        Given a trained brain, Q, and a board state:
+            (0, 1, 0, 1, None, None, None, None, 0)
         recieve an index into the board state for the suggested next move.
     """
-    board_state = state[1]
     winner = check_winner(board_state)
     if winner != None:
         # there is already a winner.
@@ -239,16 +228,14 @@ def suggest_move(Q, state):
     max_choice = float("-inf")
 
     # test to see if the move is in the dictionary.
-    valid = Q.get(state, None)
+    valid = Q.get(board_state, None)
 
     # if it is not, add an empty set of actions to the brain.
-    # this is a fail safe. this should never happen.
     if not valid:
         empty_actions = [0,0,0,0,0,0,0,0,0]
-        Q.update( {state: empty_actions} )
-        print("NEW STATE ADDED! CHECK CODE. SOMETHING IS WRONG.")
+        Q.update( {board_state: empty_actions} )
 
-    Q_reward_array = Q[state]
+    Q_reward_array = Q[board_state]
 
     # find all of the max positions from the Q for a given state.
     for i, choice in enumerate(Q_reward_array):
@@ -268,15 +255,11 @@ def reset_game():
     'zero's' everything out.
     """
     board = [None,None,None,None,None,None,None,None,None]
-
     board_state = tuple(board)
     turn = bool(random.getrandbits(1))
-    state = (turn, board_state)
-
     winner = None
     player_symbol = None
-
-    return board, state, winner, player_symbol
+    return board, board_state, turn, winner, player_symbol
 # -- - end general_purpose methods - - --- - -
 
 # training
@@ -284,19 +267,18 @@ def train(EPOCHS, Q):
     for epoch in range(EPOCHS):
 
         # ignore 'player_symbol' variable.
-        board, state, winner, player_symbol = reset_game()
+        board, board_state, turn, winner, player_symbol = reset_game()
 
         while winner == None:
-            state = play_tictactoe_turn_training(Q, state)
-            board_state = state[1]
+            board_state, turn = play_tictactoe_turn_training(Q,
+                                                    board_state, turn)
             winner = check_winner(board_state)
-
         else:
             percent = epoch/EPOCHS
             if not percent % .01:
                 print(percent *100, "% done.")
 
-def play_tictactoe_turn_training(Q, state):
+def play_tictactoe_turn_training(Q, board_state, turn):
     """
         Play a single turn of tic tac toe while training.
 
@@ -306,41 +288,39 @@ def play_tictactoe_turn_training(Q, state):
     """
 
     # the immediate rewards based on the given board_state
-    R = compute_R(state)
+    R = compute_R(board_state, turn)
 
     if random.uniform(0, 1) < EPSILON:
         # exploration
-        board_state = state[1]
         action = pick_random_move(board_state)
     else:
         # exploitation
-        action = suggest_move(Q, state)
+        action = suggest_move(Q, board_state)
 
-    next_state = play_tictactoe_turn(action, state)
+    new_board_state, turn = play_tictactoe_turn(action, board_state, turn)
 
-    # print(state, R, Q[state])
     # Update the Q model.
-    Q[state][action] = (1 - LEARNING_RATE) * Q[state][action] + LEARNING_RATE * ( R[action] + GAMMA * max(Q[next_state]) )
+    Q[board_state][action] = ( (1 - LEARNING_RATE)
+                                    * Q[board_state][action]
+                                    + LEARNING_RATE * ( R[action]
+                                    + GAMMA * max(Q[new_board_state])) )
 
-    return next_state
+    return new_board_state, turn
 
 # testing / validation
 def test_single_moves(num_moves, Q):
     for _ in range(num_moves):
 
         rand_state = random.choice(list(Q.keys()))
-        turn, board_state = rand_state
         suggested_index_of_move = suggest_move(Q, rand_state)
 
         print("\nBoard State:")
-        print(board_state[:3])
-        print(board_state[3:6])
-        print(board_state[6:9])
-        print("Turn: ", int(turn))
+        print(rand_state[:3])
+        print(rand_state[3:6])
+        print(rand_state[6:9])
+
         print("\nSuggested next move (0-8):")
         print(suggested_index_of_move)
-        print(compute_R(rand_state))
-        print(Q[rand_state])
 
 def test_accuracy(number_of_games, Q):
     def unit_test(first, AI, starting_percent=0):
@@ -361,20 +341,18 @@ def test_accuracy(number_of_games, Q):
             turn = first
             winner = None
 
-            state = (turn, board_state)
-
             while winner == None:
                 # play match.
 
                 # use AI (or not)
                 if AI == turn or AI == both:
-                    suggested_move = suggest_move(Q, state)
+                    suggested_move = suggest_move(Q, board_state)
                     action = suggested_move
                 else:
-                    action = pick_random_move(state)
+                    action = pick_random_move(board_state)
 
-                state = play_tictactoe_turn(action, state)
-                board_state = state[1]
+                board_state, turn = play_tictactoe_turn(action,
+                                                            board_state, turn)
                 winner = check_winner(board_state)
             else:
                 # record outcome.
@@ -450,17 +428,16 @@ def play_game(Q):
     play_again = 'y'
     while play_again in AFFIRMATIVE:
 
-        board, state, winner, player_symbol = reset_game()
+        board, board_state, turn, winner, player_symbol = reset_game()
         player_symbol = pick_symbol()
 
         while winner == None:
             action = -1
 
             print("\nBoard State:")
-            board_state = state[1]
             print_board_state(board_state, player_symbol)
 
-            suggested_move = suggest_move(Q, state)
+            suggested_move = suggest_move(Q, board_state)
 
             if turn:
                 possible_moves = get_available_moves(board_state)
@@ -475,8 +452,8 @@ def play_game(Q):
             else:
                 action = suggested_move
 
-            state = play_tictactoe_turn(action, state)
-            board_state = state[1]
+            board_state, turn = play_tictactoe_turn(action, board_state, turn)
+
             winner = check_winner(board_state)
 
         if winner == 1:
