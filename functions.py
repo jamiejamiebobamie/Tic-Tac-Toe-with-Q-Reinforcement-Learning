@@ -2,57 +2,6 @@ from constants import *
 import random
 
 # -- - general_purpose methods - - --- - -
-def check_winner(board_state):
-    """
-        Time complexity : O(33)
-        Iterates over the board spaces,
-        Recording the indices of 1's (1) and 0's (0) in two sets.
-
-        Iterates through the winning combinations in WINNERS
-        to see if there is a winner.
-
-        Returns 1, 0, or -1 if 1 wins, 0 wins,
-        or if there is a tie, respectively.
-
-        Returns None if there is no winner or tie.
-
-        (1 and 0 can represent X's or O's in the game
-        and either 1 or 0 can go first.)
-    """
-
-    indices_ones = set()
-    indices_zeroes = set()
-
-    # iterate over board spaces. record indices in sets.
-    for i, board_position in enumerate(board_state):
-        if board_position == 1:
-            indices_ones.add(i)
-        elif board_position == 0:
-            indices_zeroes.add(i)
-
-    # iterate through the set of winner tuples.
-    # for each item in a winning configuration, check
-    # if the item is contained in one of the sets.
-    for winner in WINNERS:
-        One_count = 0
-        Zero_count = 0
-        for w in winner:
-            if w in indices_ones:
-                One_count += 1
-            elif w in indices_zeroes:
-                Zero_count += 1
-
-        # 1 wins
-        if One_count == 3:
-            return 1
-        # 0 wins
-        elif Zero_count == 3:
-            return 0
-
-    # tie
-    if len(indices_ones) + len(indices_zeroes) == len(board_state):
-        return -1
-
 def generate_initial_Q():
     """
         This builds the initial brain or 'Q'.
@@ -270,13 +219,13 @@ def suggest_move(Q, state):
         # model was built. it *should* be contentious when both are using the
         # AI but instead it's like both are reading from the same script
         # where the second person is doomed to lose.
-    # max_Q_action = int(max(Q_reward_array))
-    # # if the Q table is empty (all zeroes)
-    # # fallback on the Rewards Array
-    # if max_Q_action == 0:
-    #     R = compute_R(state)
-    #     index_of_max_R = get_index_of_max(R)
-    #     return index_of_max_R
+    max_Q_action = int(max(Q_reward_array))
+    # if the Q table is empty (all zeroes)
+    # fallback on the Rewards Array
+    if max_Q_action == 0:
+        R = compute_R(state)
+        index_of_max_R = get_index_of_max(R)
+        return index_of_max_R
 
     # find all of the max positions from the Q for a given state.
     for i, choice in enumerate(Q_reward_array):
@@ -290,6 +239,57 @@ def suggest_move(Q, state):
                 max_indices.add(i)
 
     return random.choice(list(max_indices))
+
+def check_winner(board_state):
+    """
+        Time complexity : O(33)
+        Iterates over the board spaces,
+        Recording the indices of 1's (1) and 0's (0) in two sets.
+
+        Iterates through the winning combinations in WINNERS
+        to see if there is a winner.
+
+        Returns 1, 0, or -1 if 1 wins, 0 wins,
+        or if there is a tie, respectively.
+
+        Returns None if there is no winner or tie.
+
+        (1 and 0 can represent X's or O's in the game
+        and either 1 or 0 can go first.)
+    """
+
+    indices_ones = set()
+    indices_zeroes = set()
+
+    # iterate over board spaces. record indices in sets.
+    for i, board_position in enumerate(board_state):
+        if board_position == 1:
+            indices_ones.add(i)
+        elif board_position == 0:
+            indices_zeroes.add(i)
+
+    # iterate through the set of winner tuples.
+    # for each item in a winning configuration, check
+    # if the item is contained in one of the sets.
+    for winner in WINNERS:
+        One_count = 0
+        Zero_count = 0
+        for w in winner:
+            if w in indices_ones:
+                One_count += 1
+            elif w in indices_zeroes:
+                Zero_count += 1
+
+        # 1 wins
+        if One_count == 3:
+            return 1
+        # 0 wins
+        elif Zero_count == 3:
+            return 0
+
+    # tie
+    if len(indices_ones) + len(indices_zeroes) == len(board_state):
+        return -1
 
 def reset_game():
     """
@@ -575,13 +575,11 @@ def convert_Q_to_csv(Q, filepath):
     # https://stackoverflow.com/questions/8685809/writing-a-dictionary-to-a-csv-file-with-one-line-for-every-key-value
     pd.DataFrame.from_dict(data=Q, orient='index').to_csv(filepath, header=False)
 
-# NEED TO CHANGE THIS METHOD FOR THE NEW KEY VALUE PAIR IN Q!
 def convert_csv_to_Q(file_path):
     with open(file_path) as csv_file:
         reader = csv.reader(csv_file)
         # https://stackoverflow.com/questions/6740918/creating-a-dictionary-from-a-csv-file
         Q = dict()
-        # currently keys are strings and values are not lists!
         for row in reader:
 
             turn = row[0][1]
@@ -592,7 +590,6 @@ def convert_csv_to_Q(file_path):
 
             key_list = row[0][2:-1].split(",")
             board = []
-            # print(key_list) # this method is messed up.
             for i, entry in enumerate(key_list):
                 for char in entry:
                     if char == '1':
@@ -615,6 +612,7 @@ def convert_csv_to_Q(file_path):
                 new_value = float(row[i])
                 value.append(new_value)
                 i+=1
+                
             Q.update( {key: value} )
 
     return Q
