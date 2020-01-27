@@ -263,13 +263,20 @@ def suggest_move(Q, state):
 
     Q_reward_array = Q[state]
 
-    max_Q_action = int(max(Q_reward_array))
-    # if the Q table is empty (all zeroes)
-    # fallback on the Rewards Array
-    if max_Q_action == 0:
-        R = compute_R(state)
-        index_of_max_R = get_index_of_max(R)
-        return index_of_max_R
+    # NOTE: this block of code seems to only affect the instances when both
+        # players are using the AI. the built model switches from 100% ties
+        # to a 100% wins for the player who went first when this block is
+        # commented out, leading me to think there are errors in how the Q
+        # model was built. it *should* be contentious when both are using the
+        # AI but instead it's like both are reading from the same script
+        # where the second person is doomed to lose.
+    # max_Q_action = int(max(Q_reward_array))
+    # # if the Q table is empty (all zeroes)
+    # # fallback on the Rewards Array
+    # if max_Q_action == 0:
+    #     R = compute_R(state)
+    #     index_of_max_R = get_index_of_max(R)
+    #     return index_of_max_R
 
     # find all of the max positions from the Q for a given state.
     for i, choice in enumerate(Q_reward_array):
@@ -584,18 +591,21 @@ def convert_csv_to_Q(file_path):
                 turn = False
 
             key_list = row[0][2:-1].split(",")
-            print(key_list) # this method is messed up.
-            # for i, item in enumerate(key_list):
-                # print(type(key_list[i]))
-                # if item == ' 1':
-                #     key_list[i] = 1
-                # elif item == ' 0':
-                #     key_list[i] = 0
-                # elif item == 'N':
-                #     print('hi')
-                #     key_list[i] = None
+            board = []
+            # print(key_list) # this method is messed up.
+            for i, entry in enumerate(key_list):
+                for char in entry:
+                    if char == '1':
+                        board.append(1)
+                        break
+                    elif char == '0':
+                        board.append(0)
+                        break
+                    elif char == 'N':
+                        board.append(None)
+                        break
 
-            board_state = tuple(key_list)
+            board_state = tuple(board)
 
             key = (turn, board_state)
 

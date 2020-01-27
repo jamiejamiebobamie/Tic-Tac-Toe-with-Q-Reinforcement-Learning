@@ -294,3 +294,74 @@ LEARNING_RATE = .01
 EPOCHS = 10000000
 EPSILON = 0.5
 {True: {True: {True: 9483, False: 0, -1: 517}, False: {True: 335, False: 8537, -1: 1128}, -1: {True: 0, False: 0, -1: 10000}, 2: {True: 3550, False: 2881, -1: 3569}}, False: {True: {True: 8674, False: 327, -1: 999}, False: {True: 0, False: 9570, -1: 430}, -1: {True: 0, False: 0, -1: 10000}, 2: {True: 2899, False: 3607, -1: 3494}}}
+
+It is possible to beat the AI when going second:
+
+Do you want to be X's or O's?
+x
+
+Board State:
+[0, 1, 2]
+[3, 4, 5]
+[6, 7, 8]
+
+Board State:
+['O', 1, 2]
+[3, 4, 5]
+[6, 7, 8]
+The possible moves (0-8) are: [1, 2, 3, 4, 5, 6, 7, 8]
+From the available positions where would you like to go?
+The algorithm thinks you should go here: 7
+
+8
+
+Board State:
+['O', 1, 2]
+[3, 4, 5]
+[6, 7, 'X']
+
+Board State:
+['O', 'O', 2]
+[3, 4, 5]
+[6, 7, 'X']
+The possible moves (0-8) are: [2, 3, 4, 5, 6, 7]
+From the available positions where would you like to go?
+The algorithm thinks you should go here: 2
+
+2
+
+Board State:
+['O', 'O', 'X']
+[3, 4, 5]
+[6, 7, 'X']
+
+Board State:
+['O', 'O', 'X']
+[3, 4, 'O']
+[6, 7, 'X']
+The possible moves (0-8) are: [3, 4, 6, 7]
+From the available positions where would you like to go?
+The algorithm thinks you should go here: 6
+
+6
+
+Board State:
+['O', 'O', 'X']
+[3, 4, 'O']
+['X', 7, 'X']
+
+Board State:
+['O', 'O', 'X']
+[3, 'O', 'O']
+['X', 7, 'X']
+The possible moves (0-8) are: [3, 7]
+From the available positions where would you like to go?
+The algorithm thinks you should go here: 7
+
+7
+You won!
+['O', 'O', 'X']
+[3, 'O', 'O']
+['X', 'X', 'X']
+Would you like to play again?
+ y / n ?

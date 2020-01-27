@@ -17,7 +17,7 @@ Q = convert_csv_to_Q(file_path)
 
 # test
 print("Begin testing.")
-test_accuracy(100, Q)
+test_accuracy(10000, Q)
 # test_single_moves(20, Q)
 # print(Q)
 print("Done testing.\n")
