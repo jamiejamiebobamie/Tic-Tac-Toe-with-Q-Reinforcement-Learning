@@ -267,7 +267,6 @@ def suggest_move(Q, state):
     if max_Q_action == 0:
         R = compute_R(state)
         index_of_max_R = get_index_of_max(R)
-        # print(index_of_max_R)
         return index_of_max_R
 
     # find all of the max positions from the Q for a given state.
@@ -500,11 +499,12 @@ def play_game(Q):
         board, state, winner, player_symbol = reset_game()
         player_symbol = pick_symbol()
 
+        turn, board_state = state
+
         while winner == None:
             action = -1
 
             print("\nBoard State:")
-            board_state = state[1]
             print_board_state(board_state, player_symbol)
 
             suggested_move = suggest_move(Q, state)
@@ -523,7 +523,7 @@ def play_game(Q):
                 action = suggested_move
 
             state = play_tictactoe_turn(action, state)
-            board_state = state[1]
+            turn, board_state = state
             winner = check_winner(board_state)
 
         if winner == 1:
@@ -574,6 +574,13 @@ def convert_csv_to_Q(file_path):
         Q = dict()
         # currently keys are strings and values are not lists!
         for row in reader:
+
+            turn = row[0][1]
+            if turn == "T":
+                turn = True
+            else:
+                turn = False
+
             key_list = row[0][2:-1].split(",")
             for i, item in enumerate(key_list):
                 if item == ' 1':
@@ -583,7 +590,9 @@ def convert_csv_to_Q(file_path):
                 else:
                     key_list[i] = None
 
-            key = tuple(key_list)
+            board_state = tuple(key_list)
+
+            key = (turn, board_state)
 
             value = list()
             i = 1
