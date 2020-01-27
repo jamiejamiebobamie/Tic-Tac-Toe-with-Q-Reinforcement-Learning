@@ -29,10 +29,6 @@ def check_winner(board_state):
         elif board_space == 0:
             indices_zeroes.add(i)
 
-    # tie
-    if len(indices_ones) + len(indices_zeroes) == len(board_state):
-        return -1
-
     # iterate through the set of winner tuples.
     # for each item in a winning configuration, check
     # if the item is contained in one of the sets.
@@ -51,6 +47,10 @@ def check_winner(board_state):
          # 0 wins
         elif Zero_count == 3:
             return 0
+
+    # tie
+    if len(indices_ones) + len(indices_zeroes) == len(board_state):
+        return -1
 
 def generate_initial_Q():
     """

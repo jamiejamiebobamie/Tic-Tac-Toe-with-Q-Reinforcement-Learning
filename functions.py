@@ -30,10 +30,6 @@ def check_winner(board_state):
         elif board_position == 0:
             indices_zeroes.add(i)
 
-    # tie
-    if len(indices_ones) + len(indices_zeroes) == len(board_state):
-        return -1
-
     # iterate through the set of winner tuples.
     # for each item in a winning configuration, check
     # if the item is contained in one of the sets.
@@ -52,6 +48,10 @@ def check_winner(board_state):
         # 0 wins
         elif Zero_count == 3:
             return 0
+
+    # tie
+    if len(indices_ones) + len(indices_zeroes) == len(board_state):
+        return -1
 
 def generate_initial_Q():
     """
@@ -256,8 +256,10 @@ def suggest_move(Q, state):
     # this is a fail safe. this should never happen.
     if not valid:
         empty_actions = [0,0,0,0,0,0,0,0,0]
-        Q.update( {state: empty_actions} )
+        new_entry = {state: empty_actions}
+        Q.update(new_entry)
         print("NEW STATE ADDED! CHECK CODE. SOMETHING IS WRONG.")
+        print(new_entry)
 
     Q_reward_array = Q[state]
 
@@ -582,13 +584,16 @@ def convert_csv_to_Q(file_path):
                 turn = False
 
             key_list = row[0][2:-1].split(",")
-            for i, item in enumerate(key_list):
-                if item == ' 1':
-                    key_list[i] = 1
-                elif item == ' 0':
-                    key_list[i] = 0
-                else:
-                    key_list[i] = None
+            print(key_list) # this method is messed up.
+            # for i, item in enumerate(key_list):
+                # print(type(key_list[i]))
+                # if item == ' 1':
+                #     key_list[i] = 1
+                # elif item == ' 0':
+                #     key_list[i] = 0
+                # elif item == 'N':
+                #     print('hi')
+                #     key_list[i] = None
 
             board_state = tuple(key_list)
 
