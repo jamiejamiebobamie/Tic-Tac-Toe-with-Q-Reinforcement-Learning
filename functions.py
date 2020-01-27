@@ -19,6 +19,7 @@ def check_winner(board_state):
         (1 and 0 can represent X's or O's in the game
         and either 1 or 0 can go first.)
     """
+
     indices_ones = set()
     indices_zeroes = set()
 
@@ -95,6 +96,7 @@ def generate_initial_Q():
             if state not in Q:
                 Q[state] = [0,0,0, 0,0,0, 0,0,0]
 
+            board_state = state[1]
             winner = check_winner(board_state)
 
     return Q # 8953 valid states, but 3**9 or 19683 in all
@@ -224,13 +226,13 @@ def play_tictactoe_turn(action, state):
     turn, board_state = state
 
     board = list(board_state)
-    board[action] = int(turn)
+    board[action] = int(turn) # change this to True/False instead of 1/0
     turn = not turn
     new_board_state = tuple(board)
 
-    state = (turn, new_board_state)
+    new_state = (turn, new_board_state)
 
-    return state
+    return new_state
 
 def suggest_move(Q, state):
     """
@@ -259,6 +261,15 @@ def suggest_move(Q, state):
 
     Q_reward_array = Q[state]
 
+    max_Q_action = int(max(Q_reward_array))
+    # if the Q table is empty (all zeroes)
+    # fallback on the Rewards Array
+    if max_Q_action == 0:
+        R = compute_R(state)
+        index_of_max_R = get_index_of_max(R)
+        # print(index_of_max_R)
+        return index_of_max_R
+
     # find all of the max positions from the Q for a given state.
     for i, choice in enumerate(Q_reward_array):
         if board_state[i] == None:
@@ -286,6 +297,19 @@ def reset_game():
     player_symbol = None
 
     return board, state, winner, player_symbol
+
+def get_index_of_max(iterable):
+    max_i = -1
+    max_v = float('-inf')
+
+    for i, iter in enumerate(iterable):
+        temp = max_v
+        max_v = max(iter,max_v)
+        if max_v != temp:
+            max_i = i
+
+    return max_i
+
 # -- - end general_purpose methods - - --- - -
 
 # training
@@ -303,13 +327,13 @@ def train(EPOCHS, Q):
 
         else:
             # reward winning state.
-            # winning_state = last_state
-            # reward_array = compute_R(winning_state)
-            # winning_actions = Q[winning_state]
-            #
-            # for i, reward in enumerate(reward_array):
-            #     if reward >= 0:
-            #         winning_actions[i] += reward * LEARNING_RATE * GAMMA
+            winning_state = last_state
+            reward_array = compute_R(winning_state)
+            winning_actions = Q[winning_state]
+
+            for i, reward in enumerate(reward_array):
+                if reward >= 0:
+                    winning_actions[i] += reward * LEARNING_RATE * GAMMA
 
             percent = epoch/EPOCHS
             if not percent % .01:
@@ -396,7 +420,7 @@ def test_accuracy(number_of_games, Q):
                     action = pick_random_move(board_state)
 
                 state = play_tictactoe_turn(action, state)
-                board_state = state[1]
+                turn, board_state = state
                 winner = check_winner(board_state)
             else:
                 # record outcome.
@@ -480,7 +504,7 @@ def play_game(Q):
             action = -1
 
             print("\nBoard State:")
-            turn, board_state = state
+            board_state = state[1]
             print_board_state(board_state, player_symbol)
 
             suggested_move = suggest_move(Q, state)
@@ -499,7 +523,7 @@ def play_game(Q):
                 action = suggested_move
 
             state = play_tictactoe_turn(action, state)
-            # turn, board_state = state
+            board_state = state[1]
             winner = check_winner(board_state)
 
         if winner == 1:

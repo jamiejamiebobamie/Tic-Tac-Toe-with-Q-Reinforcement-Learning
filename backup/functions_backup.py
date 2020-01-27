@@ -300,10 +300,11 @@ def play_tictactoe_turn_training(Q, board_state, turn):
     new_board_state, turn = play_tictactoe_turn(action, board_state, turn)
 
     # Update the Q model.
-    Q[board_state][action] = ( (1 - LEARNING_RATE)
-                                    * Q[board_state][action]
-                                    + LEARNING_RATE * ( R[action]
-                                    + GAMMA * max(Q[new_board_state])) )
+    Q[board_state][action] = ( (1 - LEARNING_RATE) * Q[board_state][action]
+                                                   + LEARNING_RATE
+                                                   * ( R[action]
+                                                   + GAMMA
+                                                   * max(Q[new_board_state])) )
 
     return new_board_state, turn
 
