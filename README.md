@@ -6,9 +6,7 @@ of the time when going second. The AI ties 100% of the time when both players ar
 
 ## Getting Started
 
-Clone the repo locally. In your terminal, navigate to the main folder of the cloned repo.
-
-In your terminal, type: "python3 play.py" without quotations to play the game.
+Clone the repo locally. In your terminal, navigate to the main folder of the cloned repo and type: "python3 play.py" without quotations to play the game.
 
 ### Prerequisites
 
@@ -27,3 +25,12 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 * https://towardsdatascience.com/simple-reinforcement-learning-q-learning-fcddc4b6fe56
 * http://mnemstudio.org/path-finding-q-learning-tutorial.htm
 * https://www.learndatasci.com/tutorials/reinforcement-q-learning-scratch-python-openai-gym/
+
+## To-Do
+
+Write a function that tests one pickled brain against another.
+
+## Note:
+
+The folder marked "different_implementation" builds a Q with just a board_state as the key.
+This led to ambiguity when asking the Q for the best move as it didn't know whose turn it was, yielding a slightly lower accuracy.

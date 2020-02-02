@@ -1,10 +1,10 @@
-from constants import EPOCHS
-from functions import generate_initial_Q, train, play_game, convert_csv_to_Q
+from functions import play_game, convert_csv_to_Q
 
-file_path = 'pickled_brain2.csv'
-pickled_Q = convert_csv_to_Q(file_path)
-# print(pickled_Q)
+# load a.i.
+file_path = 'pickled_brain3.csv'
+Q = convert_csv_to_Q(file_path)
+
 # play
 print("Let's play!\n")
-play_game(pickled_Q)
+play_game(Q)
 print("\nThanks for playing!")

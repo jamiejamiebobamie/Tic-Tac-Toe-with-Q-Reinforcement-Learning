@@ -1,6 +1,5 @@
 from constants import EPOCHS
-from functions import (generate_initial_Q, train, test_accuracy,
-                        test_single_moves, convert_Q_to_csv)
+from functions import generate_initial_Q, train, convert_Q_to_csv
 
 # initialize
 print("Initializing Q.")
@@ -14,6 +13,6 @@ print("Done training.\n")
 
 # pickle
 print('Pickling model.')
-filepath = 'pickled_brain2.csv'
+filepath = 'pickled_brain3.csv'
 convert_Q_to_csv(Q, filepath)
 print("Done pickling.")

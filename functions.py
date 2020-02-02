@@ -5,39 +5,37 @@ import random
 def generate_initial_Q():
     """
         This builds the initial brain or 'Q'.
+
         Returns a dictionary of states associated with an array of actions.
         All actions are set to an intial value of zero.
+
+        'Q' stands for 'Quality'.
+
+    dictionary of states:
+          state = (turn, board_state)
+
+    associated with actions:
+          actions = [0,0,0,0,0,0,0,0,0]
+
+    Q = { state: actions }
     """
-    # 'Q' stands for 'Quality'.
+
     Q = {}
-    # a dictionary of states:
-    #       state = (turn, board_state)
-    # associated with actions:
-    #       actions = [0,0,0,0,0,0,0,0,0]
-    # Q = { state: actions }
 
-
-    # log the intial empty board and player's turn (True or False) as a state.
     state = (True, (None,None,None,None,None,None,None,None,None))
-    # actions are all initialized to zero. action indices are associated with
-        # the indices of board positions.
     Q[state] = [0,0,0,0,0,0,0,0,0]
-
     state = (False, (None,None,None,None,None,None,None,None,None))
     Q[state] = [0,0,0,0,0,0,0,0,0]
 
     # play enough games to generate all states.
     for _ in range(100000):
 
-        board = [None,None,None,None,None,None,None,None,None]
-        board_state = tuple(board)
-        turn = bool(random.getrandbits(1))
-        state = (turn, board_state)
+        # ignore 'player_symbol' variable.
+        state, winner, player_symbol = reset_game()
+        turn, board_state = state
 
-        winner = None
         while winner == None:
 
-            board_state = state[1]
             move_here = pick_random_move(board_state)
             action = move_here
             state = play_tictactoe_turn(action, state)
@@ -45,27 +43,23 @@ def generate_initial_Q():
             if state not in Q:
                 Q[state] = [0,0,0, 0,0,0, 0,0,0]
 
-            board_state = state[1]
+            turn, board_state = state
             winner = check_winner(board_state)
 
-    return Q # 8953 valid states, but 3**9 or 19683 in all
+    return Q # 8953 valid states, but 3**9 or 19683*2 permutations in all.
 
 def compute_R(state):
     """
-    Input:
-         board_state:
-            (0,1,0,None,None,None,None,None,None)
-         a tuple of the board's state
+    Compute the rewards array which signifies the rewards for the given board
+    state and player's turn. "Immediate gratification."
 
-         turn:
-            1/0
-         indicates if it's the first-person's turn (1) or the second's (0)
-         (whoever originally went first)
+    Input:
+        state:
+            (True, (None,None,None,1,1,0,1,0,None))
 
     Output:
-        an array of int.
-        the largest int being the best move / biggest reward.
-        Immediate gratification.
+        an array of integers, the largest integer being the best move.
+
     """
     turn, board_state = state
 
@@ -94,6 +88,7 @@ def compute_R(state):
                     test_board_state.append(int(turn))
 
             possible_winner = check_winner(test_board_state)
+
             # if the possible winner equals the person's who turn it is.
             if possible_winner == turn:
                 Reward_Array[i] += 100 # LOG WINNING MOVE.
@@ -107,6 +102,7 @@ def compute_R(state):
                     test_board_state.append(int(not turn))
 
             possible_winner = check_winner(test_board_state)
+
             # if the possible winner equals the other guy.
             if possible_winner == (not turn):
                 Reward_Array[i] += 50 # BLOCK THE OTHER PLAYER.
@@ -136,6 +132,8 @@ def pick_random_move(board_state):
 
 def get_available_moves(board_state):
     """
+    Return an array of board positions/indices that contain "None".
+
     Input:
          board_state:
             (0,1,0,None,None,None,None,None,None)
@@ -154,22 +152,25 @@ def get_available_moves(board_state):
 
 def play_tictactoe_turn(action, state):
     """
+    Play a single turn of tictac toe. Returns the next person's turn and the
+    new board_state given the input action.
+
     Input:
          action:
-            0-8
-         an index into the board array
+            0-8, an index into the board array
 
-         board_state:
-            (0,1,0,None,None,None,None,None,None)
-         a tuple of the board's state
+         state:
+             board_state:
+                (0,1,0,None,None,None,None,None,None),
+             a tuple of the board's state
 
-         turn:
-            1/0
-         the player's who's turn it is
+             turn:
+                True/False,
+             the player's who's turn it is
 
     Output:
-         a new board state and the next person's turn:
-            (0,1,0,None,None,None,None,None,1)
+         a new state:
+            (True, (0,1,0,None,None,None,None,None,1))
     """
 
     turn, board_state = state
@@ -186,7 +187,7 @@ def play_tictactoe_turn(action, state):
 def suggest_move(Q, state):
     """
         Given a trained brain, Q, and a state:
-            (1, (0, 1, 0, 1, None, None, None, None, 0))
+            (True, (0, 1, 0, 1, None, None, None, None, 0))
         recieve an index into the board state for the suggested next move.
     """
     board_state = state[1]
@@ -195,7 +196,7 @@ def suggest_move(Q, state):
     if winner != None:
         return -1
 
-    max_indices = set()
+    max_indices = []
     max_choice = float("-inf")
 
     # test to see if the move is in the dictionary.
@@ -216,12 +217,11 @@ def suggest_move(Q, state):
         # players are using the AI. the built model switches from 100% ties
         # to a 100% wins for the player who went first when this block is
         # commented out, leading me to think there are errors in how the Q
-        # model was built. it *should* be contentious when both are using the
-        # AI but instead it's like both are reading from the same script
-        # where the second person is doomed to lose.
+        # model is built. it *should* be contentious when both are using the
+        # AI.
     max_Q_action = int(max(Q_reward_array))
     # if the Q table is empty (all zeroes)
-    # fallback on the Rewards Array
+    # fallback on the Rewards Array.
     if max_Q_action == 0:
         R = compute_R(state)
         index_of_max_R = get_index_of_max(R)
@@ -233,29 +233,28 @@ def suggest_move(Q, state):
             temp = max_choice
             max_choice = max(max_choice, choice)
             if temp != max_choice:
-                max_indices = set()
-                max_indices.add(i)
+                max_indices = []
+                max_indices.append(i)
             if choice == max_choice:
-                max_indices.add(i)
+                max_indices.append(i)
 
-    return random.choice(list(max_indices))
+    return random.choice(max_indices)
 
 def check_winner(board_state):
     """
-        Time complexity : O(33)
         Iterates over the board spaces,
         Recording the indices of 1's (1) and 0's (0) in two sets.
 
         Iterates through the winning combinations in WINNERS
         to see if there is a winner.
 
-        Returns 1, 0, or -1 if 1 wins, 0 wins,
+        Returns 1, 0, or -1 if True wins, False wins,
         or if there is a tie, respectively.
 
         Returns None if there is no winner or tie.
 
-        (1 and 0 can represent X's or O's in the game
-        and either 1 or 0 can go first.)
+        (True and False can represent X's or O's in the game
+        and either True or False can go first.)
     """
 
     indices_ones = set()
@@ -293,7 +292,7 @@ def check_winner(board_state):
 
 def reset_game():
     """
-    'zero's' everything out.
+    'Zero's' everything out.
     """
     board = [None,None,None,None,None,None,None,None,None]
 
@@ -304,9 +303,12 @@ def reset_game():
     winner = None
     player_symbol = None
 
-    return board, state, winner, player_symbol
+    return state, winner, player_symbol
 
 def get_index_of_max(iterable):
+    """
+    Return the first index of one of the maximum items in the iterable.
+    """
     max_i = -1
     max_v = float('-inf')
 
@@ -320,29 +322,25 @@ def get_index_of_max(iterable):
 
 # -- - end general_purpose methods - - --- - -
 
-# training
+# training methods
 def train(EPOCHS, Q):
+    """
+    Given an integer # of epochs and an initialized Q, train the Q, by slowly
+    building up the state-actions by playing tic-tac-toe and recording the
+    rewards.
+    """
     for epoch in range(EPOCHS):
 
         # ignore 'player_symbol' variable.
-        board, state, winner, player_symbol = reset_game()
+        state, winner, player_symbol = reset_game()
 
         while winner == None:
-            last_state = state
             state = play_tictactoe_turn_training(Q, state)
             board_state = state[1]
             winner = check_winner(board_state)
 
         else:
-            # reward winning state.
-            winning_state = last_state
-            reward_array = compute_R(winning_state)
-            winning_actions = Q[winning_state]
-
-            for i, reward in enumerate(reward_array):
-                if reward >= 0:
-                    winning_actions[i] += reward * LEARNING_RATE * GAMMA
-
+            # show progress.
             percent = epoch/EPOCHS
             if not percent % .01:
                 print(percent *100, "% done.")
@@ -377,10 +375,14 @@ def play_tictactoe_turn_training(Q, state):
 
     return next_state
 
-# testing / validation
+# testing / validation methods
 def test_single_moves(num_moves, Q):
+    """
+        Given an integer # of moves to test and a trained Q,
+        see what the Q is suggesting the player do,
+        for that given board_state and player turn.
+    """
     for _ in range(num_moves):
-
         rand_state = random.choice(list(Q.keys()))
         turn, board_state = rand_state
         suggested_index_of_move = suggest_move(Q, rand_state)
@@ -398,14 +400,18 @@ def test_single_moves(num_moves, Q):
 def test_accuracy(number_of_games, Q):
     def unit_test(first, AI, starting_percent=0):
         """
-        Tests the Q model with the given parameters for the number_of_games
-        Record it in the record dictionary.
+            Tests the Q model with the given parameters for the number_of_games
+            Record it in the record dictionary.
 
-        INPUT: 1/0, 1/0/-1, 0-100
+            INPUT:
+                (True, True, 0)
 
-        1/0 : who goes first x or o.
-        1/0/-1/2 : who has ai, 1 for x, 0 for o, -1 for both, 2 for neither.
-        starting_percent: increment the progress percent on the output display.
+            who goes first:
+                True/False
+            who has ai:
+                True/False/both/neither
+            starting_percent:
+                0/50, increment the progress percent on the output display.
         """
         for game in range(number_of_games):
             board = [None,None,None,None,None,None,None,None,None]
@@ -490,9 +496,15 @@ def test_accuracy(number_of_games, Q):
 
     print(record)
 
-# playing
+# playing methods
 def play_game(Q):
+    """
+        Play against and with the AI in the terminal.
+    """
     def pick_symbol():
+        """
+        Pick your symbol X or O.
+        """
         player_symbol = None
         while player_symbol != "X" and player_symbol != "O":
             print("Do you want to be X's or O's?")
@@ -505,7 +517,7 @@ def play_game(Q):
     play_again = 'y'
     while play_again in AFFIRMATIVE:
 
-        board, state, winner, player_symbol = reset_game()
+        state, winner, player_symbol = reset_game()
         player_symbol = pick_symbol()
 
         turn, board_state = state
@@ -549,6 +561,9 @@ def play_game(Q):
         play_again = play_again.lower()
 
 def print_board_state(board_state, player_symbol):
+    """
+        Print the board state given the player's picked symbol.
+    """
     if player_symbol == "X":
         computer_symbol = "O"
     else:
@@ -567,7 +582,7 @@ def print_board_state(board_state, player_symbol):
     print(board[3:6])
     print(board[6:9])
 
-# storing the model and unpacking the stored model for use.
+# methods for storing the model and unpacking the stored model for use.
 import pandas as pd
 import csv
 
@@ -612,7 +627,7 @@ def convert_csv_to_Q(file_path):
                 new_value = float(row[i])
                 value.append(new_value)
                 i+=1
-                
+
             Q.update( {key: value} )
 
     return Q
