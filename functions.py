@@ -176,7 +176,7 @@ def play_tictactoe_turn(action, state):
     turn, board_state = state
 
     board = list(board_state)
-    board[action] = int(turn) # change this to True/False instead of 1/0
+    board[action] = int(turn)
     turn = not turn
     new_board_state = tuple(board)
 
@@ -473,25 +473,25 @@ def test_accuracy(number_of_games, Q):
     unit_test(first=X, AI=X, starting_percent=0)
 
     print("Testing when X goes first and O is using AI.")
-    unit_test(first=X, AI=O, starting_percent=0)
+    unit_test(first=X, AI=O, starting_percent=50)
 
     print("Testing when X goes first and both players have AI.")
     unit_test(first=X, AI=both, starting_percent=0)
+
+    print("Testing when O goes first and both players have AI.")
+    unit_test(first=O, AI=both, starting_percent=50)
 
     print("Testing when O goes first and O is using the AI.")
     unit_test(first=O, AI=O, starting_percent=0)
 
     print("Testing when O goes first and X is using AI.")
-    unit_test(first=O, AI=X, starting_percent=0)
-
-    print("Testing when O goes first and both players have AI.")
-    unit_test(first=O, AI=both, starting_percent=0)
+    unit_test(first=O, AI=X, starting_percent=50)
 
     print("Testing when X goes first and neither is using AI.")
     unit_test(first=X, AI=neither, starting_percent=0)
 
     print("Testing when O goes first and neither is using AI.")
-    unit_test(first=O, AI=neither, starting_percent=0)
+    unit_test(first=O, AI=neither, starting_percent=50)
 
 
     print(record)

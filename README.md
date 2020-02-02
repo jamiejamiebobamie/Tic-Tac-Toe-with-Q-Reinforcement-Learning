@@ -30,7 +30,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 Write a function that tests one pickled brain against another.
 
-## Note:
+## Note
 
 The folder marked "different_implementation" builds a Q with just a board_state as the key.
 This led to ambiguity when asking the Q for the best move as it didn't know whose turn it was, yielding a slightly lower accuracy.
