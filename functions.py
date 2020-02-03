@@ -166,7 +166,7 @@ def play_tictactoe_turn(action, state):
 
              turn:
                 True/False,
-             the player's who's turn it is
+             the player's whose turn it is
 
     Output:
          a new state:
