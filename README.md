@@ -8,7 +8,9 @@ This is a Python Tic Tac Toe terminal game that implements Q-Learning to play ag
 
 ## Getting Started
 
-Clone the repo locally. In your terminal, navigate to the main folder of the cloned repo and type: "python3 play.py" without quotations to play the game.
+Clone the repo locally. In your terminal, navigate to the main folder of the cloned repo and type:
+```python3 play.py```
+and press 'enter' to play the game.
 
 ### Prerequisites
 
