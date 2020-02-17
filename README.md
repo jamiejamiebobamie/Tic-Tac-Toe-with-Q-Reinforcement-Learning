@@ -1,7 +1,10 @@
 # Tic Tac Toe AI
 
 This is a Python Tic Tac Toe terminal game that implements Q-Learning to play against the player and to suggest moves.
-The AI **wins** on average **97%** of the time when going first (when playing against someone who is just picking randomly) and **85%** of the time when going second. The AI **ties 100%** of the time when both players are using the AI. When neither player is using the AI and just picking moves at random, the first person who went wins 58% of the time.
+
+* The AI **wins on average 97%** of the time when going first (when playing against someone who is just picking randomly) and 85%** of the time when going second.
+* The AI ties 100% of the time when both players are using the AI.
+* When neither player is using the AI and just picking moves at random, the first person who went wins 58% of the time.
 
 ## Getting Started
 
